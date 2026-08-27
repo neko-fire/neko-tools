@@ -20,3 +20,28 @@ def test_uuid_endpoint_rejects_zero_with_recovery_message():
 
     assert response.status_code == 422
     assert 'between 1 and 100' in response.json()['detail']
+
+
+def test_static_stylesheet_is_available_at_the_page_asset_url():
+    response = TestClient(create_app()).get('/static/styles.css')
+
+    assert response.status_code == 200
+    assert response.headers['content-type'].startswith('text/css')
+
+
+def test_root_serves_the_toolkit_page():
+    response = TestClient(create_app()).get('/')
+
+    assert response.status_code == 200
+    assert 'Timestamp converter' in response.text
+    assert 'UUIDv7 generator' in response.text
+
+
+def test_feature_manifest_lists_both_browser_tools():
+    response = TestClient(create_app()).get('/api/features')
+
+    assert response.status_code == 200
+    assert [feature['id'] for feature in response.json()['features']] == [
+        'time_converter',
+        'uuid_generator',
+    ]

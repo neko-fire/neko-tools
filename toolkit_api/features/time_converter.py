@@ -1,13 +1,16 @@
 """Timestamp parsing and display formatting."""
 
 from datetime import UTC, datetime
-from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 
 def convert_timestamp(value: str, local_timezone: str | None = None) -> dict[str, str | int]:
     """Normalize ISO inputs and Unix seconds/milliseconds to display fields."""
     utc_datetime = _parse_timestamp(value)
-    local_datetime = utc_datetime.astimezone(ZoneInfo(local_timezone or 'UTC'))
+    try:
+        local_datetime = utc_datetime.astimezone(ZoneInfo(local_timezone or 'UTC'))
+    except ZoneInfoNotFoundError as error:
+        raise ValueError('Timezone is not recognized.') from error
 
     return {
         'utc_iso': _format_iso(utc_datetime),

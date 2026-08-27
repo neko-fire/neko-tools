@@ -20,3 +20,15 @@ def test_invalid_input_is_actionable():
 
     assert response.status_code == 422
     assert 'ISO date/time' in response.json()['detail']
+
+
+def test_invalid_local_timezone_has_the_recovery_focused_error():
+    response = TestClient(create_app()).post(
+        '/api/convert',
+        json={'value': '0', 'local_timezone': 'Not/AZone'},
+    )
+
+    assert response.status_code == 422
+    assert response.json()['detail'] == (
+        'Enter an ISO date/time or Unix timestamp in seconds or milliseconds.'
+    )

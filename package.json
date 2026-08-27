@@ -1,0 +1,42 @@
+{
+  "name": "toolkit-desktop",
+  "version": "0.1.0",
+  "author": "Martin Bayer",
+  "description": "A local desktop toolkit for time conversion and UUID generation.",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "desktop": "electron .",
+    "package:mac": "electron-builder --mac"
+  },
+  "devDependencies": {
+    "electron": "^37.0.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.martinbayer.toolkit",
+    "productName": "Toolkit",
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "icon": "electron/assets/icon.icns"
+    },
+    "extraResources": [
+      {
+        "from": "toolkit_api",
+        "to": "toolkit_api"
+      },
+      {
+        "from": "static",
+        "to": "static"
+      },
+      {
+        "from": "pyproject.toml",
+        "to": "pyproject.toml"
+      }
+    ]
+  },
+  "allowScripts": {
+    "electron@37.10.3": true
+  }
+}

@@ -9,15 +9,11 @@ const HEALTH_URL = `http://${HOST}:${PORT}/api/health`;
 const STARTUP_TIMEOUT_MS = 10_000;
 
 let mainWindow;
-let pythonProcess;
+let serverProcess;
 let isQuitting = false;
 
 function pythonCommand() {
   return process.env.TOOLKIT_PYTHON || (process.platform === 'win32' ? 'python' : 'python3');
-}
-
-function applicationDirectory() {
-  return app.isPackaged ? process.resourcesPath : path.resolve(__dirname, '..');
 }
 
 function checkHealth() {
@@ -43,24 +39,35 @@ async function waitForHealth() {
   throw new Error(`Toolkit did not become ready at ${HEALTH_URL}.`);
 }
 
-function stopPython() {
-  if (pythonProcess && !pythonProcess.killed) pythonProcess.kill();
-  pythonProcess = undefined;
+function stopServer() {
+  if (serverProcess && !serverProcess.killed) serverProcess.kill();
+  serverProcess = undefined;
 }
 
-function startPython() {
+function serverCommand() {
+  if (app.isPackaged) {
+    return {
+      command: path.join(process.resourcesPath, 'server', 'toolkit-server', 'toolkit-server'),
+      arguments: ['--host', HOST, '--port', String(PORT)],
+      cwd: process.resourcesPath,
+    };
+  }
+  return {
+    command: pythonCommand(),
+    arguments: ['-m', 'uvicorn', 'toolkit_api.main:app', '--host', HOST, '--port', String(PORT)],
+    cwd: path.resolve(__dirname, '..'),
+  };
+}
+
+function startServer() {
   return new Promise((resolve, reject) => {
-    const command = pythonCommand();
-    pythonProcess = spawn(
-      command,
-      ['-m', 'uvicorn', 'toolkit_api.main:app', '--host', HOST, '--port', String(PORT)],
-      { cwd: applicationDirectory(), stdio: 'ignore' },
-    );
-    pythonProcess.once('error', (error) => {
-      stopPython();
+    const { command, arguments, cwd } = serverCommand();
+    serverProcess = spawn(command, arguments, { cwd, stdio: 'ignore' });
+    serverProcess.once('error', (error) => {
+      stopServer();
       reject(new Error(`Could not run ${command}: ${error.message}`));
     });
-    pythonProcess.once('spawn', resolve);
+    serverProcess.once('spawn', resolve);
   });
 }
 
@@ -68,7 +75,7 @@ function recoveryPage(error) {
   const message = String(error.message || error).replace(/[&<>"']/g, (character) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
   })[character]);
-  const html = `<!doctype html><html><body style="margin:0;background:#101113;color:#f4f4f5;font:16px -apple-system,BlinkMacSystemFont,sans-serif;display:grid;place-items:center;height:100vh"><main style="max-width:480px;padding:32px"><h1>Unable to start Toolkit</h1><p>Please quit and restart the app. If this continues, make sure Python and Toolkit’s dependencies are installed.</p><p style="color:#a1a1aa;font-family:ui-monospace,monospace">${message}</p></main></body></html>`;
+  const html = `<!doctype html><html><body style="margin:0;background:#101113;color:#f4f4f5;font:16px -apple-system,BlinkMacSystemFont,sans-serif;display:grid;place-items:center;height:100vh"><main style="max-width:480px;padding:32px"><h1>Unable to start Toolkit</h1><p>Please quit and restart the app. If this continues, reinstall Toolkit.</p><p style="color:#a1a1aa;font-family:ui-monospace,monospace">${message}</p></main></body></html>`;
   return `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
 }
 
@@ -85,7 +92,7 @@ function createWindow() {
   });
   mainWindow.on('closed', () => {
     mainWindow = undefined;
-    if (!isQuitting) stopPython();
+    if (!isQuitting) stopServer();
   });
   return mainWindow;
 }
@@ -93,11 +100,11 @@ function createWindow() {
 async function openToolkitWindow() {
   const window = createWindow();
   try {
-    await startPython();
+    await startServer();
     await waitForHealth();
     await window.loadURL(`http://${HOST}:${PORT}`);
   } catch (error) {
-    stopPython();
+    stopServer();
     await window.loadURL(recoveryPage(error));
   }
 }
@@ -106,7 +113,7 @@ app.whenReady().then(openToolkitWindow);
 
 app.on('before-quit', () => {
   isQuitting = true;
-  stopPython();
+  stopServer();
 });
 
 app.on('window-all-closed', () => {

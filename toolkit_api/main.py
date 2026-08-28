@@ -1,4 +1,5 @@
 from pathlib import Path
+import sys
 
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
@@ -8,7 +9,11 @@ from toolkit_api.features.manifest import FEATURE_MANIFEST
 from toolkit_api.routes.time import router as time_router
 from toolkit_api.routes.uuids import router as uuid_router
 
-STATIC_DIRECTORY = Path(__file__).resolve().parents[1] / 'static'
+STATIC_DIRECTORY = (
+    Path(sys._MEIPASS) / 'static'
+    if getattr(sys, 'frozen', False)
+    else Path(__file__).resolve().parents[1] / 'static'
+)
 
 
 def create_app() -> FastAPI:

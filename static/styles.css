@@ -30,14 +30,11 @@ body {
 button, input, select { font: inherit; }
 
 .page-shell { width: min(100% - 2rem, 76rem); margin: 0 auto; padding: clamp(2rem, 6vw, 5rem) 0; }
-.page-header { max-width: 43rem; margin-bottom: clamp(2rem, 5vw, 3.5rem); }
-.eyebrow, .panel-kicker { margin: 0; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .78rem; font-weight: 700; letter-spacing: .09em; }
-h1, h2, h3 { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; line-height: 1.15; }
-h1 { margin: .4rem 0 .75rem; font-size: clamp(2.25rem, 6vw, 4.5rem); letter-spacing: -.055em; }
+.panel-kicker { margin: 0; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .78rem; font-weight: 700; letter-spacing: .09em; }
+h2, h3 { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; line-height: 1.15; }
 h2 { margin: .45rem 0 .65rem; font-size: 1.38rem; }
 h3 { margin: 0; font-size: 1rem; }
-.lede, .panel-heading > p:not(.panel-kicker), .helper, .status { color: var(--muted); }
-.lede { margin: 0; font-size: clamp(1rem, 2vw, 1.15rem); }
+.panel-heading > p:not(.panel-kicker), .helper, .status { color: var(--muted); }
 
 .tool-grid { display: grid; gap: 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .tool-panel { min-width: 0; padding: clamp(1.25rem, 3vw, 2rem); background: color-mix(in srgb, var(--surface) 94%, transparent); border: 1px solid var(--border); border-radius: 1rem; box-shadow: 0 1.25rem 3rem rgb(0 0 0 / .2); }

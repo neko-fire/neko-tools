@@ -10,6 +10,7 @@ const {
   decodeText,
   decodeJwt,
   testRegex,
+  hashText,
   UNKNOWN_TIMEZONE_MESSAGE,
   INVALID_TIMESTAMP_MESSAGE,
   INVALID_UUID_COUNT_MESSAGE,
@@ -306,4 +307,20 @@ test('an invalid pattern is rejected', () => {
     assert.match(error.message, /^Enter a valid regular expression\./);
     return true;
   });
+});
+
+// --- Hash generator ---
+
+test('hashText returns SHA family digests', async () => {
+  const result = await hashText('abc');
+
+  assert.equal(result['SHA-1'], 'a9993e364706816aba3e25717850c26c9cd0d89d');
+  assert.equal(result['SHA-256'], 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad');
+});
+
+test('SHA-384 and SHA-512 digests have the expected lengths', async () => {
+  const result = await hashText('abc');
+
+  assert.equal(result['SHA-384'].length, 96);
+  assert.equal(result['SHA-512'].length, 128);
 });

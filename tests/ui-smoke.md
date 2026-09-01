@@ -32,6 +32,8 @@ directly in a browser with `npm run dev`. Verify the following:
     verified."
 14. The regex tester highlights every match for `\d+` against `a1 b22` with `g`
     checked, lists 2 matches, and shows an inline error for the pattern `(`.
+15. The hash generator produces four digests for `abc`, and the SHA-256 row's
+    Copy button copies the correct value.
 
 Accessibility checks: every action is reachable with Tab, focused controls
 are visibly indicated, each Copy button has a distinct accessible name, the

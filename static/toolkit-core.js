@@ -311,6 +311,24 @@
     return matches;
   }
 
+  // --- Hash generator ---
+
+  const HASH_ALGORITHMS = [
+    { id: 'SHA-1', label: 'SHA-1' },
+    { id: 'SHA-256', label: 'SHA-256' },
+    { id: 'SHA-384', label: 'SHA-384' },
+    { id: 'SHA-512', label: 'SHA-512' },
+  ];
+
+  async function hashText(value) {
+    const bytes = new TextEncoder().encode(String(value));
+    const digests = await Promise.all(HASH_ALGORITHMS.map(({ id }) => crypto.subtle.digest(id, bytes)));
+    return HASH_ALGORITHMS.reduce((result, { id }, index) => {
+      result[id] = bytesToHex(new Uint8Array(digests[index]));
+      return result;
+    }, {});
+  }
+
   return {
     convertTimestamp,
     generateUuid7Batch,
@@ -320,6 +338,8 @@
     decodeText,
     decodeJwt,
     testRegex,
+    hashText,
+    HASH_ALGORITHMS,
     INVALID_TIMESTAMP_MESSAGE,
     UNKNOWN_TIMEZONE_MESSAGE,
     INVALID_UUID_COUNT_MESSAGE,

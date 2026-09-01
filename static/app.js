@@ -130,6 +130,31 @@
     return copyText(value, `Copied ${label}.`, statusElement);
   }
 
+  let copyRowCounter = 0;
+
+  // Builds one labeled result row with its own Copy button. Used by any tool
+  // that renders a variable-length list of copyable values (Hash, Case).
+  function renderCopyRow(label, value) {
+    const row = document.createElement('div');
+    row.className = 'result-row';
+    const dt = document.createElement('dt');
+    dt.textContent = label;
+    const dd = document.createElement('dd');
+    const span = document.createElement('span');
+    span.className = 'result-value';
+    span.id = `copy-value-${copyRowCounter++}`;
+    span.textContent = value;
+    const copyButton = document.createElement('button');
+    copyButton.className = 'button button-secondary copy-one';
+    copyButton.type = 'button';
+    copyButton.textContent = 'Copy';
+    copyButton.dataset.copyTarget = span.id;
+    copyButton.setAttribute('aria-label', `Copy ${label} value`);
+    dd.append(span, copyButton);
+    row.append(dt, dd);
+    return row;
+  }
+
   function clearIds() {
     generatedIds.splice(0, generatedIds.length);
     renderIds();
@@ -360,5 +385,22 @@
 
   regexForm.addEventListener('submit', (event) => { event.preventDefault(); runRegexTest(); });
 
-  window.ToolkitApp = { convert, generateIds, copyText, clearIds, activateTool, runJson, runEncode, runJwtDecode, runRegexTest };
+  // --- Hash generator ---
+
+  const hashForm = document.querySelector('#hash-form');
+  const hashInput = document.querySelector('#hash-input');
+  const hashResult = document.querySelector('#hash-result');
+  const hashList = document.querySelector('#hash-list');
+  const hashStatus = document.querySelector('#hash-status');
+
+  async function runHash() {
+    hashStatus.textContent = '';
+    const digests = await ToolkitCore.hashText(hashInput.value);
+    hashList.replaceChildren(...ToolkitCore.HASH_ALGORITHMS.map(({ id, label }) => renderCopyRow(label, digests[id])));
+    hashResult.hidden = false;
+  }
+
+  hashForm.addEventListener('submit', (event) => { event.preventDefault(); runHash(); });
+
+  window.ToolkitApp = { convert, generateIds, copyText, clearIds, activateTool, runJson, runEncode, runJwtDecode, runRegexTest, runHash };
 })();

@@ -30,6 +30,9 @@
           <li role="presentation">
             <button class="nav-item" type="button" role="tab" data-tool="regex" aria-selected="false">Regex</button>
           </li>
+          <li role="presentation">
+            <button class="nav-item" type="button" role="tab" data-tool="hash" aria-selected="false">Hash</button>
+          </li>
         </ul>
       </nav>
       <main class="tool-content" aria-label="Neko Toolkit">
@@ -234,6 +237,23 @@
             <ul class="id-list" id="regex-matches"></ul>
           </section>
           <p class="status" id="regex-status" aria-live="polite"></p>
+        </article>
+
+        <article class="tool-panel" id="tool-hash" data-tool-panel="hash" aria-labelledby="hash-title" hidden>
+          <div class="panel-heading">
+            <p class="panel-kicker">07 / HASHING</p>
+            <h2 id="hash-title">Hash generator</h2>
+            <p>Computes SHA-1, SHA-256, SHA-384, and SHA-512 digests of the input text.</p>
+          </div>
+          <form id="hash-form" novalidate>
+            <label for="hash-input">Text</label>
+            <textarea id="hash-input" name="hash-input" rows="6" spellcheck="false" required></textarea>
+            <button class="button button-primary" type="submit">Generate hashes</button>
+          </form>
+          <section class="result-card" id="hash-result" aria-live="polite" aria-label="Hash result" hidden>
+            <dl class="result-list" id="hash-list"></dl>
+          </section>
+          <p class="status" id="hash-status" aria-live="polite"></p>
         </article>
       </main>
     </div>

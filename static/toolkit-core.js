@@ -17,6 +17,7 @@
   const INVALID_JSON_MESSAGE = 'Enter valid JSON.';
   const INVALID_ENCODING_INPUT_MESSAGE = 'That input cannot be decoded with the selected format.';
   const INVALID_JWT_MESSAGE = 'Enter a JWT with three dot-separated segments.';
+  const INVALID_REGEX_MESSAGE = 'Enter a valid regular expression.';
 
   // Below this, a number reads as seconds; at or above it, as milliseconds.
   const MILLISECOND_THRESHOLD = 100000000000;
@@ -285,6 +286,31 @@
     };
   }
 
+  // --- Regex tester ---
+
+  function testRegex(pattern, flags, text) {
+    let regex;
+    try {
+      regex = new RegExp(pattern, flags);
+    } catch (error) {
+      throw new Error(`${INVALID_REGEX_MESSAGE} ${error.message}`);
+    }
+
+    if (!flags.includes('g')) {
+      const match = regex.exec(text);
+      return match ? [{ index: match.index, value: match[0], groups: match.slice(1) }] : [];
+    }
+
+    const matches = [];
+    let match = regex.exec(text);
+    while (match !== null) {
+      matches.push({ index: match.index, value: match[0], groups: match.slice(1) });
+      if (match[0] === '') regex.lastIndex += 1;
+      match = regex.exec(text);
+    }
+    return matches;
+  }
+
   return {
     convertTimestamp,
     generateUuid7Batch,
@@ -293,11 +319,13 @@
     encodeText,
     decodeText,
     decodeJwt,
+    testRegex,
     INVALID_TIMESTAMP_MESSAGE,
     UNKNOWN_TIMEZONE_MESSAGE,
     INVALID_UUID_COUNT_MESSAGE,
     INVALID_JSON_MESSAGE,
     INVALID_ENCODING_INPUT_MESSAGE,
     INVALID_JWT_MESSAGE,
+    INVALID_REGEX_MESSAGE,
   };
 });

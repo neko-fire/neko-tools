@@ -296,5 +296,69 @@
 
   jwtForm.addEventListener('submit', (event) => { event.preventDefault(); runJwtDecode(); });
 
-  window.ToolkitApp = { convert, generateIds, copyText, clearIds, activateTool, runJson, runEncode, runJwtDecode };
+  // --- Regex tester ---
+
+  const regexForm = document.querySelector('#regex-form');
+  const regexPattern = document.querySelector('#regex-pattern');
+  const regexText = document.querySelector('#regex-text');
+  const regexError = document.querySelector('#regex-error');
+  const regexResult = document.querySelector('#regex-result');
+  const regexHighlight = document.querySelector('#regex-highlight');
+  const regexMatches = document.querySelector('#regex-matches');
+  const regexCount = document.querySelector('#regex-count');
+  const regexStatus = document.querySelector('#regex-status');
+
+  function activeRegexFlags() {
+    return [...regexForm.querySelectorAll('[name="regex-flag"]:checked')].map((box) => box.value).join('');
+  }
+
+  function renderHighlight(text, matches) {
+    regexHighlight.replaceChildren();
+    let cursor = 0;
+    matches.forEach((match) => {
+      if (match.value === '') return;
+      regexHighlight.append(document.createTextNode(text.slice(cursor, match.index)));
+      const mark = document.createElement('mark');
+      mark.textContent = match.value;
+      regexHighlight.append(mark);
+      cursor = match.index + match.value.length;
+    });
+    regexHighlight.append(document.createTextNode(text.slice(cursor)));
+  }
+
+  function renderMatches(matches) {
+    regexCount.textContent = String(matches.length);
+    regexMatches.replaceChildren(...matches.map((match, position) => {
+      const item = document.createElement('li');
+      item.className = 'id-row';
+      const value = document.createElement('code');
+      value.className = 'id-value';
+      const groups = match.groups.length ? ` [${match.groups.map((g) => g ?? '').join(', ')}]` : '';
+      value.textContent = `${position + 1}. "${match.value}" at ${match.index}${groups}`;
+      item.append(value);
+      return item;
+    }));
+  }
+
+  function runRegexTest() {
+    setError(regexError, '');
+    regexStatus.textContent = '';
+    try {
+      const matches = ToolkitCore.testRegex(regexPattern.value, activeRegexFlags(), regexText.value);
+      renderHighlight(regexText.value, matches);
+      renderMatches(matches);
+      regexResult.hidden = false;
+    } catch (error) {
+      regexResult.hidden = true;
+      setError(regexError, error.message);
+      regexPattern.setAttribute('aria-invalid', 'true');
+      regexPattern.focus();
+    } finally {
+      if (regexError.hidden) regexPattern.removeAttribute('aria-invalid');
+    }
+  }
+
+  regexForm.addEventListener('submit', (event) => { event.preventDefault(); runRegexTest(); });
+
+  window.ToolkitApp = { convert, generateIds, copyText, clearIds, activateTool, runJson, runEncode, runJwtDecode, runRegexTest };
 })();

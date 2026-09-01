@@ -30,6 +30,8 @@ directly in a browser with `npm run dev`. Verify the following:
 13. The JWT decoder splits a valid token into header and payload JSON, shows a
     human-readable date next to `iat`, and always shows "Signature not
     verified."
+14. The regex tester highlights every match for `\d+` against `a1 b22` with `g`
+    checked, lists 2 matches, and shows an inline error for the pattern `(`.
 
 Accessibility checks: every action is reachable with Tab, focused controls
 are visibly indicated, each Copy button has a distinct accessible name, the

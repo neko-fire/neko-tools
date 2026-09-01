@@ -27,6 +27,9 @@
           <li role="presentation">
             <button class="nav-item" type="button" role="tab" data-tool="jwt" aria-selected="false">JWT</button>
           </li>
+          <li role="presentation">
+            <button class="nav-item" type="button" role="tab" data-tool="regex" aria-selected="false">Regex</button>
+          </li>
         </ul>
       </nav>
       <main class="tool-content" aria-label="Neko Toolkit">
@@ -200,6 +203,37 @@
             <p class="helper">Signature not verified.</p>
           </section>
           <p class="status" id="jwt-status" aria-live="polite"></p>
+        </article>
+
+        <article class="tool-panel" id="tool-regex" data-tool-panel="regex" aria-labelledby="regex-title" hidden>
+          <div class="panel-heading">
+            <p class="panel-kicker">06 / PATTERNS</p>
+            <h2 id="regex-title">Regex tester</h2>
+            <p>Test a JavaScript regular expression against sample text.</p>
+          </div>
+          <form id="regex-form" novalidate>
+            <label for="regex-pattern">Pattern</label>
+            <input id="regex-pattern" name="regex-pattern" type="text" spellcheck="false" aria-describedby="regex-error" required />
+            <fieldset class="flag-set">
+              <legend>Flags</legend>
+              <label><input type="checkbox" name="regex-flag" value="g" checked /> g (global)</label>
+              <label><input type="checkbox" name="regex-flag" value="i" /> i (ignore case)</label>
+              <label><input type="checkbox" name="regex-flag" value="m" /> m (multiline)</label>
+              <label><input type="checkbox" name="regex-flag" value="s" /> s (dot all)</label>
+              <label><input type="checkbox" name="regex-flag" value="u" /> u (unicode)</label>
+            </fieldset>
+            <label for="regex-text">Test string</label>
+            <textarea id="regex-text" name="regex-text" rows="6" spellcheck="false" required></textarea>
+            <p class="form-error" id="regex-error" role="alert" hidden></p>
+            <button class="button button-primary" type="submit">Test</button>
+          </form>
+          <section class="result-card" id="regex-result" aria-live="polite" aria-label="Regex result" hidden>
+            <h3>Matched text</h3>
+            <pre class="output-block" id="regex-highlight"></pre>
+            <h3>Matches (<span id="regex-count">0</span>)</h3>
+            <ul class="id-list" id="regex-matches"></ul>
+          </section>
+          <p class="status" id="regex-status" aria-live="polite"></p>
         </article>
       </main>
     </div>

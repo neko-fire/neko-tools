@@ -84,6 +84,10 @@ dd { min-width: 0; margin: 0; }
 .id-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .5rem; align-items: center; padding: .5rem; background: rgb(15 23 42 / .58); border: 1px solid var(--border); border-radius: .5rem; opacity: 0; transform: translateY(4px); animation: reveal var(--motion) forwards; }
 .id-value { min-width: 0; overflow-wrap: anywhere; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .9rem; }
 .copy-one { min-width: 44px; padding-inline: .65rem; }
+.flag-set { border: 1px solid var(--border); border-radius: .5rem; padding: .6rem .75rem; display: flex; flex-wrap: wrap; gap: .6rem .9rem; margin: 0; }
+.flag-set legend { padding: 0 .3rem; color: var(--muted); font-weight: 700; font-size: .8rem; }
+.flag-set label { display: inline-flex; align-items: center; gap: .35rem; font-weight: 400; margin-top: 0; }
+mark { background: var(--accent); color: var(--accent-text); border-radius: .2rem; padding: 0 .15rem; }
 
 @keyframes reveal { to { opacity: 1; transform: translateY(0); } }
 @media (max-width: 30rem) { .output-heading { align-items: flex-start; flex-direction: column; } .output-actions { width: 100%; } .output-actions .button { flex: 1; } }

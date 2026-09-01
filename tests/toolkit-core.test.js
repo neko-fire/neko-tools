@@ -9,12 +9,14 @@ const {
   encodeText,
   decodeText,
   decodeJwt,
+  testRegex,
   UNKNOWN_TIMEZONE_MESSAGE,
   INVALID_TIMESTAMP_MESSAGE,
   INVALID_UUID_COUNT_MESSAGE,
   INVALID_JSON_MESSAGE,
   INVALID_ENCODING_INPUT_MESSAGE,
   INVALID_JWT_MESSAGE,
+  INVALID_REGEX_MESSAGE,
 } = require('../static/toolkit-core.js');
 
 // --- Timestamp conversion (ported from tests/test_time_converter.py) ---
@@ -265,4 +267,43 @@ test('a segment that is not valid base64url JSON is rejected', () => {
 
 test('empty input is rejected', () => {
   assert.throws(() => decodeJwt(''), { message: INVALID_JWT_MESSAGE });
+});
+
+// --- Regex tester ---
+
+test('a pattern with the global flag returns every match', () => {
+  const matches = testRegex('\\d+', 'g', 'a1 b22 c333');
+
+  assert.deepEqual(matches.map((m) => m.value), ['1', '22', '333']);
+  assert.equal(matches[1].index, 4);
+});
+
+test('without the global flag only the first match is returned', () => {
+  const matches = testRegex('\\d+', '', 'a1 b22');
+
+  assert.deepEqual(matches.map((m) => m.value), ['1']);
+});
+
+test('capture groups are included', () => {
+  const matches = testRegex('(\\w)(\\d)', 'g', 'a1 b2');
+
+  assert.deepEqual(matches[0].groups, ['a', '1']);
+  assert.deepEqual(matches[1].groups, ['b', '2']);
+});
+
+test('no match returns an empty list', () => {
+  assert.deepEqual(testRegex('zzz', 'g', 'abc'), []);
+});
+
+test('an empty-match pattern does not loop forever', () => {
+  const matches = testRegex('a*', 'g', 'baab');
+
+  assert.ok(matches.length > 0 && matches.length < 100);
+});
+
+test('an invalid pattern is rejected', () => {
+  assert.throws(() => testRegex('(', 'g', 'abc'), (error) => {
+    assert.match(error.message, /^Enter a valid regular expression\./);
+    return true;
+  });
 });

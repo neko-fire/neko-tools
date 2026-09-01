@@ -15,6 +15,7 @@
   const UNKNOWN_TIMEZONE_MESSAGE = 'Select a different display time zone.';
   const INVALID_UUID_COUNT_MESSAGE = 'Choose a quantity between 1 and 100.';
   const INVALID_JSON_MESSAGE = 'Enter valid JSON.';
+  const INVALID_ENCODING_INPUT_MESSAGE = 'That input cannot be decoded with the selected format.';
 
   // Below this, a number reads as seconds; at or above it, as milliseconds.
   const MILLISECOND_THRESHOLD = 100000000000;
@@ -220,14 +221,58 @@
     return JSON.stringify(parseJsonOrThrow(value));
   }
 
+  // --- Encode/decode ---
+
+  function bytesToBase64(bytes) {
+    let binary = '';
+    bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
+    return btoa(binary);
+  }
+
+  function base64ToBytes(text) {
+    const binary = atob(text);
+    return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  }
+
+  function bytesToHex(bytes) {
+    return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+  }
+
+  function encodeText(mode, value) {
+    const text = String(value);
+    if (mode === 'url') return encodeURIComponent(text);
+    const bytes = new TextEncoder().encode(text);
+    if (mode === 'hex') return bytesToHex(bytes);
+    return bytesToBase64(bytes);
+  }
+
+  function decodeText(mode, value) {
+    const text = String(value);
+    try {
+      if (mode === 'url') return decodeURIComponent(text);
+      if (mode === 'hex') {
+        const clean = text.trim().replace(/\s+/g, '');
+        if (!/^[0-9a-fA-F]*$/.test(clean) || clean.length % 2 !== 0) throw new Error('malformed hex');
+        const bytes = Uint8Array.from({ length: clean.length / 2 }, (_, index) => parseInt(clean.slice(index * 2, index * 2 + 2), 16));
+        return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+      }
+      return new TextDecoder('utf-8', { fatal: true }).decode(base64ToBytes(text));
+    } catch (error) {
+      throw new Error(INVALID_ENCODING_INPUT_MESSAGE);
+    }
+  }
+
   return {
     convertTimestamp,
     generateUuid7Batch,
     formatJson,
     minifyJson,
+    encodeText,
+    decodeText,
     INVALID_TIMESTAMP_MESSAGE,
     UNKNOWN_TIMEZONE_MESSAGE,
     INVALID_UUID_COUNT_MESSAGE,
     INVALID_JSON_MESSAGE,
+    INVALID_ENCODING_INPUT_MESSAGE,
   };
 });

@@ -6,10 +6,13 @@ const {
   generateUuid7Batch,
   formatJson,
   minifyJson,
+  encodeText,
+  decodeText,
   UNKNOWN_TIMEZONE_MESSAGE,
   INVALID_TIMESTAMP_MESSAGE,
   INVALID_UUID_COUNT_MESSAGE,
   INVALID_JSON_MESSAGE,
+  INVALID_ENCODING_INPUT_MESSAGE,
 } = require('../static/toolkit-core.js');
 
 // --- Timestamp conversion (ported from tests/test_time_converter.py) ---
@@ -201,4 +204,41 @@ test('invalid JSON surfaces the native parse error', () => {
 
 test('empty input is rejected', () => {
   assert.throws(() => formatJson(''), { message: /Enter valid JSON\./ });
+});
+
+// --- Encode/decode ---
+
+test('base64 round-trips UTF-8 text', () => {
+  const encoded = encodeText('base64', 'héllo');
+
+  assert.equal(encoded, 'aMOpbGxv');
+  assert.equal(decodeText('base64', encoded), 'héllo');
+});
+
+test('url encoding escapes reserved characters', () => {
+  assert.equal(encodeText('url', 'a b/c'), 'a%20b%2Fc');
+  assert.equal(decodeText('url', 'a%20b%2Fc'), 'a b/c');
+});
+
+test('hex round-trips UTF-8 text', () => {
+  const encoded = encodeText('hex', 'hi');
+
+  assert.equal(encoded, '6869');
+  assert.equal(decodeText('hex', '6869'), 'hi');
+});
+
+test('invalid base64 is rejected with guidance', () => {
+  assert.throws(() => decodeText('base64', '***'), { message: INVALID_ENCODING_INPUT_MESSAGE });
+});
+
+test('base64 decoding invalid UTF-8 bytes is rejected', () => {
+  assert.throws(() => decodeText('base64', 'gA=='), { message: INVALID_ENCODING_INPUT_MESSAGE });
+});
+
+test('odd-length hex is rejected', () => {
+  assert.throws(() => decodeText('hex', 'abc'), { message: INVALID_ENCODING_INPUT_MESSAGE });
+});
+
+test('non-hex characters are rejected', () => {
+  assert.throws(() => decodeText('hex', 'zz'), { message: INVALID_ENCODING_INPUT_MESSAGE });
 });

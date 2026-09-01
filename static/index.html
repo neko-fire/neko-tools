@@ -21,6 +21,9 @@
           <li role="presentation">
             <button class="nav-item" type="button" role="tab" data-tool="json" aria-selected="false">JSON</button>
           </li>
+          <li role="presentation">
+            <button class="nav-item" type="button" role="tab" data-tool="encode" aria-selected="false">Encode/Decode</button>
+          </li>
         </ul>
       </nav>
       <main class="tool-content" aria-label="Neko Toolkit">
@@ -134,6 +137,37 @@
             <pre class="output-block"><code id="json-output"></code></pre>
           </section>
           <p class="status" id="json-status" aria-live="polite"></p>
+        </article>
+
+        <article class="tool-panel" id="tool-encode" data-tool-panel="encode" aria-labelledby="encode-title" hidden>
+          <div class="panel-heading">
+            <p class="panel-kicker">04 / ENCODING</p>
+            <h2 id="encode-title">Encode / decode</h2>
+            <p>Convert text to and from Base64, URL, and hex encoding.</p>
+          </div>
+          <form id="encode-form" novalidate>
+            <label for="encode-mode">Format</label>
+            <select id="encode-mode" name="encode-mode">
+              <option value="base64">Base64</option>
+              <option value="url">URL</option>
+              <option value="hex">Hex</option>
+            </select>
+            <label for="encode-input">Text</label>
+            <textarea id="encode-input" name="encode-input" rows="6" spellcheck="false" aria-describedby="encode-error" required></textarea>
+            <p class="form-error" id="encode-error" role="alert" hidden></p>
+            <div class="button-row">
+              <button class="button button-primary" type="submit" data-encode-action="encode">Encode</button>
+              <button class="button button-secondary" type="button" data-encode-action="decode">Decode</button>
+            </div>
+          </form>
+          <section class="result-card" id="encode-result" aria-live="polite" aria-label="Encode/decode result" hidden>
+            <div class="output-heading">
+              <h3>Result</h3>
+              <button class="button button-secondary copy-one" type="button" data-copy-target="encode-output" data-copy-label="encoded result">Copy</button>
+            </div>
+            <pre class="output-block"><code id="encode-output"></code></pre>
+          </section>
+          <p class="status" id="encode-status" aria-live="polite"></p>
         </article>
       </main>
     </div>

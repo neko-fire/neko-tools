@@ -136,6 +136,35 @@
     uuidStatus.textContent = 'Generated IDs cleared from this session.';
   }
 
+  // --- Encode/decode ---
+
+  const encodeForm = document.querySelector('#encode-form');
+  const encodeMode = document.querySelector('#encode-mode');
+  const encodeInput = document.querySelector('#encode-input');
+  const encodeError = document.querySelector('#encode-error');
+  const encodeResult = document.querySelector('#encode-result');
+  const encodeOutput = document.querySelector('#encode-output');
+  const encodeStatus = document.querySelector('#encode-status');
+
+  function runEncode(action) {
+    setError(encodeError, '');
+    encodeStatus.textContent = '';
+    try {
+      const text = action === 'decode'
+        ? ToolkitCore.decodeText(encodeMode.value, encodeInput.value)
+        : ToolkitCore.encodeText(encodeMode.value, encodeInput.value);
+      encodeOutput.textContent = text;
+      encodeResult.hidden = false;
+    } catch (error) {
+      encodeResult.hidden = true;
+      setError(encodeError, error.message);
+      encodeInput.setAttribute('aria-invalid', 'true');
+      encodeInput.focus();
+    } finally {
+      if (encodeError.hidden) encodeInput.removeAttribute('aria-invalid');
+    }
+  }
+
   // --- JSON formatter/validator ---
 
   const jsonForm = document.querySelector('#json-form');
@@ -212,5 +241,8 @@
   jsonForm.addEventListener('submit', (event) => { event.preventDefault(); runJson('format'); });
   jsonForm.querySelector('[data-json-action="minify"]').addEventListener('click', () => runJson('minify'));
 
-  window.ToolkitApp = { convert, generateIds, copyText, clearIds, activateTool, runJson };
+  encodeForm.addEventListener('submit', (event) => { event.preventDefault(); runEncode('encode'); });
+  encodeForm.querySelector('[data-encode-action="decode"]').addEventListener('click', () => runEncode('decode'));
+
+  window.ToolkitApp = { convert, generateIds, copyText, clearIds, activateTool, runJson, runEncode };
 })();

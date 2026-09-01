@@ -25,6 +25,8 @@ directly in a browser with `npm run dev`. Verify the following:
 10. Submitting `invalid` for a timestamp displays inline recovery guidance.
 11. The JSON tool formats `{"a":1}` into pretty-printed JSON, minifies it back
     to one line, and shows an inline error for `{invalid}` instead of a result.
+12. The Encode/Decode tool converts `hello` to Base64 `aGVsbG8=` and back, and
+    shows an inline error when decoding `zz` as Hex.
 
 Accessibility checks: every action is reachable with Tab, focused controls
 are visibly indicated, each Copy button has a distinct accessible name, the

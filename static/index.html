@@ -8,9 +8,20 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="page-shell" aria-label="Neko Toolkit">
-      <section class="tool-grid" aria-label="Toolkit features">
-        <article class="tool-panel" aria-labelledby="time-title">
+    <div class="app-shell">
+      <nav class="tool-nav" aria-label="Tools">
+        <p class="nav-title">Toolkit</p>
+        <ul class="nav-list" role="tablist">
+          <li role="presentation">
+            <button class="nav-item" type="button" role="tab" data-tool="timestamp" aria-selected="true">Timestamp</button>
+          </li>
+          <li role="presentation">
+            <button class="nav-item" type="button" role="tab" data-tool="uuid" aria-selected="false">UUIDv7</button>
+          </li>
+        </ul>
+      </nav>
+      <main class="tool-content" aria-label="Neko Toolkit">
+        <article class="tool-panel" id="tool-timestamp" data-tool-panel="timestamp" aria-labelledby="time-title">
           <div class="panel-heading">
             <p class="panel-kicker">01 / TIME</p>
             <h2 id="time-title">Timestamp converter</h2>
@@ -70,7 +81,7 @@
           <p class="status" id="convert-status" aria-live="polite"></p>
         </article>
 
-        <article class="tool-panel" aria-labelledby="uuid-title">
+        <article class="tool-panel" id="tool-uuid" data-tool-panel="uuid" aria-labelledby="uuid-title" hidden>
           <div class="panel-heading">
             <p class="panel-kicker">02 / IDENTIFIERS</p>
             <h2 id="uuid-title">UUIDv7 generator</h2>
@@ -96,8 +107,8 @@
             <ul class="id-list" id="id-list" aria-live="polite" aria-label="Generated UUIDs"></ul>
           </section>
         </article>
-      </section>
-    </main>
+      </main>
+    </div>
     <script src="toolkit-core.js" defer></script>
     <script src="app.js" defer></script>
   </body>

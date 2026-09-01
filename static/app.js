@@ -1,6 +1,8 @@
 (() => {
   'use strict';
 
+  const TOOL_STORAGE_KEY = 'toolkit.activeTool';
+
   const generatedIds = [];
   const convertForm = document.querySelector('#convert-form');
   const uuidForm = document.querySelector('#uuid-form');
@@ -80,7 +82,7 @@
       copyButton.type = 'button';
       copyButton.textContent = 'Copy';
       copyButton.setAttribute('aria-label', `Copy ${id}`);
-      copyButton.addEventListener('click', () => copyText(id, `Copied ${id}.`));
+      copyButton.addEventListener('click', () => copyText(id, `Copied ${id}.`, uuidStatus));
       item.append(value, copyButton);
       idList.append(item);
     });
@@ -106,7 +108,7 @@
     }
   }
 
-  async function copyText(text, successMessage = 'Copied to clipboard.', statusElement = uuidStatus) {
+  async function copyText(text, successMessage, statusElement) {
     try {
       await navigator.clipboard.writeText(text);
       statusElement.textContent = successMessage;
@@ -117,10 +119,15 @@
     }
   }
 
+  // Works for any tool's copy button: a `data-copy-label` on the button wins;
+  // otherwise the label comes from the sibling <dt> in the same .result-row
+  // (this is what lets the Timestamp tool's "Local time" / "Time in <zone>"
+  // label stay live without the button needing to know about it).
   function copyResultValue(button) {
     const value = document.getElementById(button.dataset.copyTarget).textContent;
-    const label = button.closest('.result-row').querySelector('dt').textContent;
-    return copyText(value, `Copied ${label}.`, convertStatus);
+    const label = button.dataset.copyLabel || button.closest('.result-row').querySelector('dt').textContent;
+    const statusElement = button.closest('.tool-panel').querySelector('.status');
+    return copyText(value, `Copied ${label}.`, statusElement);
   }
 
   function clearIds() {
@@ -129,15 +136,52 @@
     uuidStatus.textContent = 'Generated IDs cleared from this session.';
   }
 
+  // --- Tab navigation ---
+
+  const navButtons = [...document.querySelectorAll('.nav-item')];
+  const toolPanels = new Map(
+    [...document.querySelectorAll('[data-tool-panel]')].map((panel) => [panel.dataset.toolPanel, panel]),
+  );
+
+  function activateTool(tool) {
+    if (!toolPanels.has(tool)) return;
+    navButtons.forEach((button) => button.setAttribute('aria-selected', String(button.dataset.tool === tool)));
+    toolPanels.forEach((panel, name) => { panel.hidden = name !== tool; });
+    try {
+      localStorage.setItem(TOOL_STORAGE_KEY, tool);
+    } catch (error) {
+      // localStorage can be unavailable (private mode); the tab still works this session.
+    }
+  }
+
+  function restoreActiveTool() {
+    let stored = null;
+    try {
+      stored = localStorage.getItem(TOOL_STORAGE_KEY);
+    } catch (error) {
+      stored = null;
+    }
+    activateTool(toolPanels.has(stored) ? stored : navButtons[0].dataset.tool);
+  }
+
+  navButtons.forEach((button) => {
+    button.addEventListener('click', () => activateTool(button.dataset.tool));
+  });
+
+  // Delegated so every current and future tool's Copy buttons work with zero
+  // per-tool wiring, as long as they carry class="copy-one" + data-copy-target.
+  document.querySelector('.tool-content').addEventListener('click', (event) => {
+    const button = event.target.closest('.copy-one[data-copy-target]');
+    if (button) copyResultValue(button);
+  });
+
   populateTimezones();
+  restoreActiveTool();
 
   convertForm.addEventListener('submit', (event) => { event.preventDefault(); convert(); });
   uuidForm.addEventListener('submit', (event) => { event.preventDefault(); generateIds(); });
-  convertResult.querySelectorAll('[data-copy-target]').forEach((button) => {
-    button.addEventListener('click', () => copyResultValue(button));
-  });
-  copyAllButton.addEventListener('click', () => copyText(generatedIds.join('\n'), `Copied all ${generatedIds.length} IDs.`));
+  copyAllButton.addEventListener('click', () => copyText(generatedIds.join('\n'), `Copied all ${generatedIds.length} IDs.`, uuidStatus));
   clearButton.addEventListener('click', clearIds);
 
-  window.ToolkitApp = { convert, generateIds, copyText, clearIds };
+  window.ToolkitApp = { convert, generateIds, copyText, clearIds, activateTool };
 })();

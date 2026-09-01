@@ -6,20 +6,23 @@ directly in a browser with `npm run dev`. Verify the following:
 ## The page
 
 1. The page loads with both panels: Timestamp converter and UUIDv7 generator.
-2. The display time zone selector is pre-selected to this computer's zone and
+2. Clicking a sidebar item shows that tool's panel and hides the others; the
+   clicked item is visually marked active. Reloading the page reopens on the
+   tool you had open, not always Timestamp.
+3. The display time zone selector is pre-selected to this computer's zone and
    lists the platform's IANA zones.
-3. Submitting `0` in the timestamp converter displays
+4. Submitting `0` in the timestamp converter displays
    `1970-01-01T00:00:00Z` as the UTC result.
-4. With the pre-selected zone, the second result row is labelled `Local time`.
+5. With the pre-selected zone, the second result row is labelled `Local time`.
    Choosing a different zone relabels it `Time in <zone>` and the value shows
    that zone's offset.
-5. Each result row has its own Copy button, and using one reports
+6. Each result row has its own Copy button, and using one reports
    `Copied <field>.` below the converter without touching the UUID panel status.
-6. Generating `3` UUIDs renders three IDs.
-7. Copying an individual ID and copying all IDs each give visible status
+7. Generating `3` UUIDs renders three IDs.
+8. Copying an individual ID and copying all IDs each give visible status
    feedback, and the value really is on the clipboard.
-8. Clearing IDs removes the rendered ID list.
-9. Submitting `invalid` for a timestamp displays inline recovery guidance.
+9. Clearing IDs removes the rendered ID list.
+10. Submitting `invalid` for a timestamp displays inline recovery guidance.
 
 Accessibility checks: every action is reachable with Tab, focused controls
 are visibly indicated, each Copy button has a distinct accessible name, the

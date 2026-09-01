@@ -8,4 +8,71 @@ dist/
 out/
 build/
 *.egg-info/
+<<<<<<< Updated upstream
 .DS_Store
+=======
+
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Virtual envs ---
+.venv/
+venv/
+ENV/
+env/
+
+# --- Env files / secrets ---
+.env
+.env.*
+!.env.example
+
+# --- Build / packaging ---
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+*.whl
+
+# --- JS / Bun (root + packages/*; each apps/web-* has its own .gitignore too) ---
+node_modules/
+
+# --- Test / tooling caches ---
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+.cache/
+.impeccable/hook.cache.json
+apps/web-regular/.impeccable/hook.cache.json
+
+# --- IDE / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+__pycache__/
+*.py[cod]
+.env
+*.egg-info/
+# Google Sheets service-account credentials (do not commit)
+gscreds.json
+*.pem
+
+# Conductor workspace — generated per-workspace, never shared
+.workspace-config
+docker-compose.workspace.yml
+.fresh/
+requestly-api/
+
+# Personal Conductor/Claude settings — repo-shared config (settings.toml /
+# settings.json) is committed instead
+.conductor/settings.local.toml
+.claude/settings.local.json
+>>>>>>> Stashed changes

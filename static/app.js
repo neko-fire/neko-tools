@@ -46,34 +46,18 @@
     element.hidden = !message;
   }
 
-  async function request(path, payload) {
-    const response = await fetch(path, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      throw new Error(data.detail || 'The request could not be completed. Please try again.');
-    }
-    return data;
-  }
-
-  async function convert(value = timestampInput.value, timezone = timezoneSelect.value) {
+  function convert(value = timestampInput.value, timezone = timezoneSelect.value) {
     setError(timestampError, '');
     convertStatus.textContent = '';
     try {
-      const result = await request('/api/convert', {
-        value: String(value),
-        local_timezone: String(timezone).trim() || null,
-      });
+      const result = ToolkitCore.convertTimestamp(value, timezone);
       Object.entries(resultFields).forEach(([key, element]) => { element.textContent = String(result[key]); });
       resultLocalLabel.textContent = timezone === detectedTimezone ? 'Local time' : `Time in ${timezone}`;
       convertResult.hidden = false;
       return result;
     } catch (error) {
       convertResult.hidden = true;
-      // The API already phrases its errors as recovery instructions.
+      // The core already phrases its errors as recovery instructions.
       setError(timestampError, error.message);
       timestampInput.setAttribute('aria-invalid', 'true');
       timestampInput.focus();
@@ -105,11 +89,10 @@
     clearButton.disabled = !hasIds;
   }
 
-  async function generateIds(count = countInput.value) {
+  function generateIds(count = countInput.value) {
     setError(uuidError, '');
     try {
-      const result = await request('/api/uuids', { count: Number(count) });
-      generatedIds.splice(0, generatedIds.length, ...result.ids);
+      generatedIds.splice(0, generatedIds.length, ...ToolkitCore.generateUuid7Batch(Number(count)));
       renderIds();
       uuidStatus.textContent = `Generated ${generatedIds.length} UUID${generatedIds.length === 1 ? '' : 's'} in this session.`;
       return [...generatedIds];

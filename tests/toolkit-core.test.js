@@ -1,0 +1,180 @@
+const assert = require('node:assert');
+const { test } = require('node:test');
+
+const {
+  convertTimestamp,
+  generateUuid7Batch,
+  UNKNOWN_TIMEZONE_MESSAGE,
+  INVALID_TIMESTAMP_MESSAGE,
+  INVALID_UUID_COUNT_MESSAGE,
+} = require('../static/toolkit-core.js');
+
+// --- Timestamp conversion (ported from tests/test_time_converter.py) ---
+
+test('epoch seconds are normalized', () => {
+  const result = convertTimestamp('0', 'UTC');
+
+  assert.equal(result.utc_iso, '1970-01-01T00:00:00Z');
+  assert.equal(result.unix_seconds, 0);
+  assert.equal(result.unix_milliseconds, 0);
+});
+
+test('ISO input becomes unix seconds', () => {
+  assert.equal(convertTimestamp('2024-01-01T00:00:00Z', 'UTC').unix_seconds, 1704067200);
+});
+
+test('invalid input is actionable', () => {
+  assert.throws(() => convertTimestamp('not-a-date', 'UTC'), (error) => {
+    assert.equal(error.message, INVALID_TIMESTAMP_MESSAGE);
+    assert.match(error.message, /ISO date\/time/);
+    return true;
+  });
+});
+
+test('local time is rendered in the requested zone', () => {
+  const result = convertTimestamp('1700000000', 'Europe/Berlin');
+
+  assert.equal(result.local_time, '2023-11-14T23:13:20+01:00');
+  assert.equal(result.utc_iso, '2023-11-14T22:13:20Z');
+});
+
+test('invalid local timezone names the time zone, not the timestamp', () => {
+  assert.throws(() => convertTimestamp('0', 'Not/AZone'), (error) => {
+    assert.equal(error.message, UNKNOWN_TIMEZONE_MESSAGE);
+    return true;
+  });
+});
+
+test('rejected time zone key is reported as a time zone problem', () => {
+  assert.throws(() => convertTimestamp('0', '/etc/localtime'), (error) => {
+    assert.equal(error.message, UNKNOWN_TIMEZONE_MESSAGE);
+    return true;
+  });
+});
+
+// --- Conversion edge cases the Python implementation handled ---
+// The logic is a reimplementation, not a copy, so the behaviors the original
+// only covered implicitly are pinned here.
+
+test('large numbers are read as milliseconds', () => {
+  const result = convertTimestamp('1700000000000', 'UTC');
+
+  assert.equal(result.utc_iso, '2023-11-14T22:13:20Z');
+  assert.equal(result.unix_seconds, 1700000000);
+});
+
+test('sub-second input keeps millisecond precision', () => {
+  assert.equal(convertTimestamp('1700000000.5', 'UTC').utc_iso, '2023-11-14T22:13:20.500Z');
+});
+
+test('a naive ISO timestamp is treated as UTC', () => {
+  assert.equal(convertTimestamp('2024-01-01T00:00:00', 'UTC').unix_seconds, 1704067200);
+});
+
+test('an ISO offset is honored', () => {
+  assert.equal(convertTimestamp('2024-01-01T01:00:00+01:00', 'UTC').unix_seconds, 1704067200);
+});
+
+test('a date without a time is midnight UTC', () => {
+  assert.equal(convertTimestamp('2024-01-01', 'UTC').utc_iso, '2024-01-01T00:00:00Z');
+});
+
+test('empty input is rejected', () => {
+  assert.throws(() => convertTimestamp('   ', 'UTC'), { message: INVALID_TIMESTAMP_MESSAGE });
+});
+
+test('a hex literal is not a timestamp', () => {
+  assert.throws(() => convertTimestamp('0x10', 'UTC'), { message: INVALID_TIMESTAMP_MESSAGE });
+});
+
+test('a non-finite number is rejected', () => {
+  assert.throws(() => convertTimestamp('Infinity', 'UTC'), { message: INVALID_TIMESTAMP_MESSAGE });
+});
+
+test('relative time reads as past or future', () => {
+  const now = Date.now();
+  const twoDaysAgo = String(Math.trunc(now / 1000) - 2 * 86400);
+  // +1s of slack: the elapsed millisecond between building the input and
+  // measuring against Date.now() would otherwise truncate 3 hours to 2.
+  const threeHoursAhead = String(Math.trunc(now / 1000) + 3 * 3600 + 1);
+
+  assert.equal(convertTimestamp(twoDaysAgo, 'UTC').relative_time, '2 days ago');
+  assert.equal(convertTimestamp(threeHoursAhead, 'UTC').relative_time, 'in 3 hours');
+  assert.equal(convertTimestamp(String(Math.trunc(now / 1000)), 'UTC').relative_time, 'just now');
+});
+
+test('a single unit is not pluralized', () => {
+  const oneDayAgo = String(Math.trunc(Date.now() / 1000) - 86400 - 5);
+
+  assert.equal(convertTimestamp(oneDayAgo, 'UTC').relative_time, '1 day ago');
+});
+
+// --- Regressions found by differential-testing the port against the Python ---
+
+test('a two-digit year is not folded into the 1900s', () => {
+  // Date.UTC(49, ...) means 1949, which corrupted both parsing and the
+  // offset lookup for years under 100.
+  const result = convertTimestamp('0049-11-27T02:13:34Z', 'Africa/Cairo');
+
+  assert.equal(result.utc_iso, '0049-11-27T02:13:34Z');
+  assert.equal(result.local_time, '0049-11-27T04:18:43+02:05:09');
+});
+
+test('pre-standardization zones keep their local mean time offset', () => {
+  // Zones carried second-precision offsets before they standardized.
+  assert.equal(convertTimestamp('-6257396485', 'Africa/Cairo').local_time, '1771-09-17T12:23:44+02:05:09');
+  assert.equal(convertTimestamp('-47477049320', 'Europe/Dublin').local_time, '0465-07-06T02:19:19-00:25:21');
+});
+
+test('a millisecond input round-trips exactly', () => {
+  // The Python implementation recomputed this through a float and lost 1ms.
+  assert.equal(convertTimestamp('136881230253', 'UTC').unix_milliseconds, 136881230253);
+});
+
+test('timestamps outside years 1-9999 are rejected', () => {
+  assert.throws(() => convertTimestamp('-70000000000', 'UTC'), { message: INVALID_TIMESTAMP_MESSAGE });
+  assert.throws(() => convertTimestamp('260000000000000', 'UTC'), { message: INVALID_TIMESTAMP_MESSAGE });
+});
+
+test('an impossible calendar date is rejected', () => {
+  assert.throws(() => convertTimestamp('2024-02-31T00:00:00Z', 'UTC'), { message: INVALID_TIMESTAMP_MESSAGE });
+});
+
+// --- UUIDv7 (ported from tests/test_uuid_generator.py) ---
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+
+test('batch is the requested size and version seven', () => {
+  const values = generateUuid7Batch(3);
+
+  assert.equal(values.length, 3);
+  assert.ok(values.every((value) => UUID_PATTERN.test(value)), `not all v7: ${values}`);
+});
+
+test('invalid batch size is rejected', () => {
+  assert.throws(() => generateUuid7Batch(101), { message: INVALID_UUID_COUNT_MESSAGE });
+});
+
+test('zero is rejected with a recovery message', () => {
+  assert.throws(() => generateUuid7Batch(0), (error) => {
+    assert.match(error.message, /between 1 and 100/);
+    return true;
+  });
+});
+
+test('a non-integer count is rejected', () => {
+  assert.throws(() => generateUuid7Batch(2.5), { message: INVALID_UUID_COUNT_MESSAGE });
+  assert.throws(() => generateUuid7Batch(Number.NaN), { message: INVALID_UUID_COUNT_MESSAGE });
+});
+
+test('the batch boundaries are inclusive', () => {
+  assert.equal(generateUuid7Batch(1).length, 1);
+  assert.equal(generateUuid7Batch(100).length, 100);
+});
+
+test('generated ids are unique and ordered by time', () => {
+  const values = generateUuid7Batch(100);
+
+  assert.equal(new Set(values).size, 100);
+  assert.deepEqual([...values].sort(), values, 'v7 ids should sort in generation order');
+});

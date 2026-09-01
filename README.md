@@ -1,20 +1,18 @@
 # Toolkit
 
-A small local utility app with two tools: a **UTC timestamp converter** and a
-**UUIDv7 generator**. It runs either in the browser or as a macOS desktop app.
+A small macOS utility app with two tools: a **UTC timestamp converter** and a
+**UUIDv7 generator**.
 
-Python owns all conversion and ID generation, so both surfaces behave
-identically — the frontend never converts a timestamp or mints an ID itself.
+It is a native window around a local HTML page. There is no server, no bundled
+runtime, and no network access — the whole app is 404 KB.
 
 ## TL;DR
 
 ```bash
-python3 -m pip install -e '.[dev]'   # one-time
-npm install                          # one-time
-
-npm run web          # browser at http://127.0.0.1:8000
-npm run desktop      # desktop app, against your local Python
-npm run package:mac  # build the installable macOS app + DMG
+npm test             # run the test suite (Node's built-in runner, no installs)
+npm run dev          # open the page in Safari, the fastest loop for UI work
+npm run build        # build dist/Toolkit.app
+npm run package:mac  # build, test, and produce the DMG
 ```
 
 ## What it does
@@ -31,71 +29,65 @@ the list is gone after a reload or restart.
 
 ## Requirements
 
-- macOS on Apple Silicon (the build targets the host architecture)
-- Python 3.11+ and Node.js 18+
+- macOS 12 or later (Intel or Apple silicon — the app ships universal)
+- To build: the Xcode Command Line Tools (`xcode-select --install`)
+- To run the tests: Node.js 18+
 
-Running the *packaged* app needs no Python at all — the server is bundled into
-it.
+No Python, no `npm install` — the project has zero dependencies.
 
-## Run it in the web
+## How it is put together
 
-```bash
-python3 -m pip install -e '.[dev]'   # one-time
-npm run web
+```
+native/main.swift       the app: an NSWindow hosting a WKWebView
+native/Info.plist       bundle metadata
+native/assets/icon.icns app icon
+static/toolkit-core.js  timestamp + UUIDv7 logic, no DOM access
+static/app.js           wires the page to the core
+static/index.html       the single page
+static/styles.css       styling
+scripts/build-app.sh    compiles the universal binary, assembles the .app
+scripts/build-dmg.sh    wraps the .app into a DMG
+tests/                  logic tests, packaging tests, manual smoke checks
 ```
 
-Then open <http://127.0.0.1:8000>. The server reloads on file changes, so this
-is the fastest loop for working on the UI in `static/`.
+`toolkit-core.js` holds all the logic and touches neither the DOM nor the
+network, so the tests import it directly with no browser and no harness. It is
+loaded as a plain `<script>` in the app and via `require` in tests.
 
-To run the desktop shell against your local Python instead:
-
-```bash
-npm install    # one-time, installs Electron
-npm run desktop
-```
+Adding a tool means a function in `toolkit-core.js`, a panel in `index.html`,
+and its wiring in `app.js`. No plugin framework.
 
 ## Build the macOS app
 
 ```bash
-python3 -m pip install -e '.[dev]'   # one-time, provides PyInstaller
-npm install                          # one-time
 npm run package:mac
 ```
 
-That single command runs four stages:
+Three stages:
 
-1. **`package:server`** — PyInstaller bundles the FastAPI server, the Python
-   runtime, and `static/` into a standalone executable at
-   `build/server/toolkit-server/`.
-2. **`test:packaged-server`** — launches that executable in a clean
-   environment (only `HOME`, `PATH=/usr/bin:/bin`, `TMPDIR`) on a per-run port
-   and requires `GET /api/health` to answer `200` from that exact process.
-3. **`electron-builder --mac`** — wraps it into `Toolkit.app` and a DMG, then
-   ad-hoc signs the bundle via the `afterPack` hook.
-4. **`test:packaged-app`** — fails the build if the app's code signature is
-   invalid.
+1. **`build`** — `swiftc` compiles `native/main.swift` once per architecture,
+   `lipo` fuses them into a universal binary, and the `.app` is assembled and
+   ad-hoc signed.
+2. **`test`** — the logic suite plus `tests/packaged-app.test.js`, which checks
+   the built bundle: every asset present, no absolute or remote asset paths,
+   both architecture slices, and a valid signature with the app's own
+   identifier.
+3. **`dmg`** — wraps the app into `dist/Toolkit-0.1.0.dmg`.
 
 Results:
 
-- `dist/mac-arm64/Toolkit.app` — the app bundle
-- `dist/Toolkit-0.1.0-arm64.dmg` — the installer
+- `dist/Toolkit.app` — 404 KB
+- `dist/Toolkit-0.1.0.dmg` — 184 KB
 
 **To install:** open the DMG and drag **Toolkit** to Applications. A DMG you
 built yourself is not quarantined, so it opens normally.
 
-Because the UI is bundled into the server executable, changes to `static/`
-require a rebuild before they appear in the packaged app.
-
 ## Code signing and Gatekeeper
 
-There is no Apple Developer ID on this machine, so Electron Builder skips
-signing. Left alone that ships a bundle still carrying Electron's own linker
-signature, which no longer matches the rewritten bundle — macOS then kills the
-app on launch with *"Toolkit is damaged and can't be opened."*
-
-`scripts/adhoc-sign.cjs` runs as an `afterPack` hook and ad-hoc signs the
-bundle so its signature is valid, and `npm run test:packaged-app` fails the
-build if that ever regresses.
+There is no Apple Developer ID on this machine, so `scripts/build-app.sh`
+ad-hoc signs the bundle. An unsigned bundle is killed by macOS the moment it
+carries a quarantine flag, and `tests/packaged-app.test.js` fails the build if
+the signature ever regresses.
 
 Ad-hoc signing is not notarization. If the DMG travels over the internet or
 AirDrop it arrives quarantined, and Gatekeeper will refuse it. Clear the flag:
@@ -111,40 +103,25 @@ certificate plus notarization.
 
 | Command | Purpose |
 | --- | --- |
-| `npm run web` | Run the browser app with reload on port 8000 |
-| `npm run desktop` | Run the Electron app against local Python |
-| `npm run test:python` | Run the Python test suite |
-| `npm run package:server` | Build the standalone server executable |
-| `npm run test:packaged-server` | Launch that executable in a clean environment |
-| `npm run test:packaged-app` | Verify the packaged app's code signature |
-| `npm run package:mac` | Full chain: server, smoke test, DMG, signature check |
+| `npm test` | Run the logic and packaging tests |
+| `npm run dev` | Open `static/index.html` in Safari |
+| `npm run build` | Build `dist/Toolkit.app` |
+| `npm run dmg` | Wrap the built app into a DMG |
+| `npm run start` | Launch the built app |
+| `npm run package:mac` | Full chain: build, test, DMG |
 
-## Layout
+## Notes on the logic
 
-```
-toolkit_api/            FastAPI app
-  features/             conversion and generation logic (+ manifest)
-  routes/               /api/convert, /api/uuids
-static/                 framework-free UI (index.html, app.js, styles.css)
-electron/main.cjs       desktop shell: starts the server, loads the page
-scripts/build-server.cjs   PyInstaller build
-scripts/adhoc-sign.cjs     afterPack ad-hoc signing hook
-tests/                  Python tests, packaging tests, manual smoke checks
-```
+Both features are pure functions, so the page computes them itself:
 
-Each future tool gets a route module, a frontend panel, and a
-`toolkit_api/features/manifest.py` entry. No plugin framework.
-
-## API
-
-- `GET /api/health` → `{"status": "ok"}`
-- `POST /api/convert` → `{"value": "...", "local_timezone": "Europe/Berlin"}`
-- `POST /api/uuids` → `{"count": 3}`
-
-Validation errors return `422` with a `detail` string phrased as a recovery
-instruction.
+- **Timestamps** use `Intl.DateTimeFormat` for zone offsets, including the
+  second-precision Local Mean Time offsets that zones carried before they
+  standardized (`Africa/Cairo` was `+02:05:09` until 1900). Inputs are accepted
+  for years 1–9999.
+- **UUIDv7** takes its randomness from `crypto.getRandomValues` and puts a
+  counter in `rand_a`, so IDs minted inside the same millisecond still sort in
+  generation order.
 
 ## Manual checks
 
-`tests/ui-smoke.md` covers the browser UI and accessibility;
-`tests/electron-smoke.md` covers the desktop app and the packaged build.
+`tests/ui-smoke.md` covers the UI, the app window, and accessibility.

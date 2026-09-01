@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0f172a" />
+    <title>Toolkit</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="page-shell" aria-labelledby="page-title">
+      <header class="page-header">
+        <p class="eyebrow">LOCAL DEVELOPER UTILITY</p>
+        <h1 id="page-title">Toolkit</h1>
+        <p class="lede">Time conversions and UUIDv7 generation, backed by your local API.</p>
+      </header>
+
+      <section class="tool-grid" aria-label="Toolkit features">
+        <article class="tool-panel" aria-labelledby="time-title">
+          <div class="panel-heading">
+            <p class="panel-kicker">01 / TIME</p>
+            <h2 id="time-title">Timestamp converter</h2>
+            <p>Use a Unix timestamp or ISO date/time. Results always come from the API.</p>
+          </div>
+          <form id="convert-form" novalidate>
+            <label for="timestamp">Timestamp or ISO date/time</label>
+            <input id="timestamp" name="timestamp" type="text" inputmode="text" autocomplete="off" aria-describedby="timestamp-help timestamp-error" required />
+            <p class="helper" id="timestamp-help">Examples: <code>0</code>, <code>1700000000000</code>, or <code>2024-01-01T00:00:00Z</code>.</p>
+            <p class="form-error" id="timestamp-error" role="alert" hidden></p>
+
+            <label for="timezone">Display time zone</label>
+            <select id="timezone" name="timezone" aria-describedby="timezone-help"></select>
+            <p class="helper" id="timezone-help">Defaults to this computer&rsquo;s time zone.</p>
+
+            <button class="button button-primary" type="submit">Convert timestamp</button>
+          </form>
+          <section class="result-card" id="convert-result" aria-live="polite" aria-label="Conversion result" hidden>
+            <dl class="result-list">
+              <div class="result-row">
+                <dt>UTC ISO</dt>
+                <dd>
+                  <span class="result-value" id="result-utc"></span>
+                  <button class="button button-secondary copy-one" type="button" data-copy-target="result-utc" aria-label="Copy UTC ISO value">Copy</button>
+                </dd>
+              </div>
+              <div class="result-row">
+                <dt id="result-local-label">Local time</dt>
+                <dd>
+                  <span class="result-value" id="result-local"></span>
+                  <button class="button button-secondary copy-one" type="button" data-copy-target="result-local" aria-label="Copy local time value">Copy</button>
+                </dd>
+              </div>
+              <div class="result-row">
+                <dt>Unix seconds</dt>
+                <dd>
+                  <span class="result-value" id="result-seconds"></span>
+                  <button class="button button-secondary copy-one" type="button" data-copy-target="result-seconds" aria-label="Copy Unix seconds value">Copy</button>
+                </dd>
+              </div>
+              <div class="result-row">
+                <dt>Unix milliseconds</dt>
+                <dd>
+                  <span class="result-value" id="result-milliseconds"></span>
+                  <button class="button button-secondary copy-one" type="button" data-copy-target="result-milliseconds" aria-label="Copy Unix milliseconds value">Copy</button>
+                </dd>
+              </div>
+              <div class="result-row">
+                <dt>Relative</dt>
+                <dd>
+                  <span class="result-value" id="result-relative"></span>
+                  <button class="button button-secondary copy-one" type="button" data-copy-target="result-relative" aria-label="Copy relative time value">Copy</button>
+                </dd>
+              </div>
+            </dl>
+          </section>
+          <p class="status" id="convert-status" aria-live="polite"></p>
+        </article>
+
+        <article class="tool-panel" aria-labelledby="uuid-title">
+          <div class="panel-heading">
+            <p class="panel-kicker">02 / IDENTIFIERS</p>
+            <h2 id="uuid-title">UUIDv7 generator</h2>
+            <p>Generate time-sortable identifiers in this browser session.</p>
+          </div>
+          <form id="uuid-form" novalidate>
+            <label for="uuid-count">How many UUIDs?</label>
+            <input id="uuid-count" name="uuid-count" type="number" min="1" max="100" step="1" inputmode="numeric" value="3" aria-describedby="uuid-help uuid-error" required />
+            <p class="helper" id="uuid-help">Choose between 1 and 100 identifiers.</p>
+            <p class="form-error" id="uuid-error" role="alert" hidden></p>
+            <button class="button button-primary" type="submit">Generate UUIDs</button>
+          </form>
+
+          <section class="id-output" aria-labelledby="generated-title">
+            <div class="output-heading">
+              <h3 id="generated-title">Generated IDs</h3>
+              <div class="output-actions">
+                <button id="copy-all" class="button button-secondary" type="button" disabled>Copy all</button>
+                <button id="clear-ids" class="button button-quiet" type="button" disabled>Clear</button>
+              </div>
+            </div>
+            <p class="status" id="uuid-status" aria-live="polite">No IDs generated in this session.</p>
+            <ul class="id-list" id="id-list" aria-live="polite" aria-label="Generated UUIDs"></ul>
+          </section>
+        </article>
+      </section>
+    </main>
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>

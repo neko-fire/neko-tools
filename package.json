@@ -1,0 +1,41 @@
+{
+  "name": "toolkit-desktop",
+  "version": "0.1.0",
+  "author": "Martin Bayer",
+  "description": "A local desktop toolkit for time conversion and UUID generation.",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "web": "python3 -m uvicorn toolkit_api.main:app --host 127.0.0.1 --port 8000 --reload",
+    "desktop": "electron .",
+    "test:python": "python3 -m pytest -q",
+    "package:server": "node scripts/build-server.cjs",
+    "test:packaged-server": "node tests/packaged-server-smoke.cjs",
+    "test:packaged-app": "node tests/packaged-app-signature.cjs",
+    "package:mac": "npm run package:server && npm run test:packaged-server && electron-builder --mac && npm run test:packaged-app"
+  },
+  "devDependencies": {
+    "electron": "^37.0.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.martinbayer.toolkit",
+    "productName": "Toolkit",
+    "afterPack": "scripts/adhoc-sign.cjs",
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "icon": "electron/assets/icon.icns",
+      "identity": null
+    },
+    "extraResources": [
+      {
+        "from": "build/server/toolkit-server",
+        "to": "server/toolkit-server"
+      }
+    ]
+  },
+  "allowScripts": {
+    "electron@37.10.3": true
+  }
+}

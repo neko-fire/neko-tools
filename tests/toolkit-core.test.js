@@ -12,6 +12,7 @@ const {
   testRegex,
   hashText,
   diffLines,
+  convertCase,
   UNKNOWN_TIMEZONE_MESSAGE,
   INVALID_TIMESTAMP_MESSAGE,
   INVALID_UUID_COUNT_MESSAGE,
@@ -379,4 +380,47 @@ test('two completely different texts are all removed then all added', () => {
 
 test('empty input diffs against an empty line', () => {
   assert.deepEqual(diffLines('', ''), [{ type: 'unchanged', value: '' }]);
+});
+
+// --- Case converter ---
+
+test('space-separated words convert to camelCase and PascalCase', () => {
+  const result = convertCase('hello world example');
+
+  assert.equal(result.camelCase, 'helloWorldExample');
+  assert.equal(result.PascalCase, 'HelloWorldExample');
+});
+
+test('snake_case and kebab-case use lowercase words', () => {
+  const result = convertCase('Hello World');
+
+  assert.equal(result.snake_case, 'hello_world');
+  assert.equal(result['kebab-case'], 'hello-world');
+});
+
+test('CONSTANT_CASE is uppercased with underscores', () => {
+  assert.equal(convertCase('hello world').CONSTANT_CASE, 'HELLO_WORLD');
+});
+
+test('Title Case capitalizes every word', () => {
+  assert.equal(convertCase('hello world')['Title Case'], 'Hello World');
+});
+
+test('an existing camelCase input is split on case boundaries', () => {
+  const result = convertCase('helloWorldExample');
+
+  assert.equal(result.snake_case, 'hello_world_example');
+});
+
+test('mixed delimiters are normalized', () => {
+  const result = convertCase('hello_world-example test');
+
+  assert.equal(result.camelCase, 'helloWorldExampleTest');
+});
+
+test('empty input produces empty output for every style', () => {
+  const result = convertCase('');
+
+  assert.equal(result.camelCase, '');
+  assert.equal(result.CONSTANT_CASE, '');
 });

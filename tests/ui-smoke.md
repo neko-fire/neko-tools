@@ -36,6 +36,8 @@ directly in a browser with `npm run dev`. Verify the following:
     Copy button copies the correct value.
 16. The diff viewer marks a changed middle line as one removed line followed by
     one added line, each visually distinct.
+17. The case converter turns `hello world` into `helloWorld`-style output across
+    all 6 styles, each with a working Copy button.
 
 Accessibility checks: every action is reachable with Tab, focused controls
 are visibly indicated, each Copy button has a distinct accessible name, the

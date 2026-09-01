@@ -380,6 +380,39 @@
     return result;
   }
 
+  // --- Case converter ---
+
+  const CASE_STYLES = [
+    { id: 'camelCase', label: 'camelCase' },
+    { id: 'PascalCase', label: 'PascalCase' },
+    { id: 'snake_case', label: 'snake_case' },
+    { id: 'kebab-case', label: 'kebab-case' },
+    { id: 'CONSTANT_CASE', label: 'CONSTANT_CASE' },
+    { id: 'Title Case', label: 'Title Case' },
+  ];
+
+  function tokenizeWords(value) {
+    return String(value)
+      .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+      .split(/[^A-Za-z0-9]+/)
+      .filter(Boolean)
+      .map((word) => word.toLowerCase());
+  }
+
+  function convertCase(value) {
+    const words = tokenizeWords(value);
+    const capitalize = (word) => word.charAt(0).toUpperCase() + word.slice(1);
+
+    return {
+      camelCase: words.map((word, index) => (index === 0 ? word : capitalize(word))).join(''),
+      PascalCase: words.map(capitalize).join(''),
+      snake_case: words.join('_'),
+      'kebab-case': words.join('-'),
+      CONSTANT_CASE: words.join('_').toUpperCase(),
+      'Title Case': words.map(capitalize).join(' '),
+    };
+  }
+
   return {
     convertTimestamp,
     generateUuid7Batch,
@@ -391,6 +424,8 @@
     testRegex,
     hashText,
     diffLines,
+    convertCase,
+    CASE_STYLES,
     HASH_ALGORITHMS,
     INVALID_TIMESTAMP_MESSAGE,
     UNKNOWN_TIMEZONE_MESSAGE,

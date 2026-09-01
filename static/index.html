@@ -36,6 +36,9 @@
           <li role="presentation">
             <button class="nav-item" type="button" role="tab" data-tool="diff" aria-selected="false">Diff</button>
           </li>
+          <li role="presentation">
+            <button class="nav-item" type="button" role="tab" data-tool="case" aria-selected="false">Case</button>
+          </li>
         </ul>
       </nav>
       <main class="tool-content" aria-label="Neko Toolkit">
@@ -276,6 +279,23 @@
             <pre class="output-block" id="diff-output"></pre>
           </section>
           <p class="status" id="diff-status" aria-live="polite"></p>
+        </article>
+
+        <article class="tool-panel" id="tool-case" data-tool-panel="case" aria-labelledby="case-title" hidden>
+          <div class="panel-heading">
+            <p class="panel-kicker">09 / CASE</p>
+            <h2 id="case-title">Case converter</h2>
+            <p>Converts text between common identifier and title casing styles.</p>
+          </div>
+          <form id="case-form" novalidate>
+            <label for="case-input">Text</label>
+            <input id="case-input" name="case-input" type="text" spellcheck="false" />
+            <button class="button button-primary" type="submit">Convert</button>
+          </form>
+          <section class="result-card" id="case-result" aria-live="polite" aria-label="Case conversion result" hidden>
+            <dl class="result-list" id="case-list"></dl>
+          </section>
+          <p class="status" id="case-status" aria-live="polite"></p>
         </article>
       </main>
     </div>

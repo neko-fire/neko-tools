@@ -428,5 +428,22 @@
 
   diffForm.addEventListener('submit', (event) => { event.preventDefault(); runDiff(); });
 
-  window.ToolkitApp = { convert, generateIds, copyText, clearIds, activateTool, runJson, runEncode, runJwtDecode, runRegexTest, runHash, runDiff };
+  // --- Case converter ---
+
+  const caseForm = document.querySelector('#case-form');
+  const caseInput = document.querySelector('#case-input');
+  const caseResult = document.querySelector('#case-result');
+  const caseList = document.querySelector('#case-list');
+  const caseStatus = document.querySelector('#case-status');
+
+  function runCaseConvert() {
+    caseStatus.textContent = '';
+    const result = ToolkitCore.convertCase(caseInput.value);
+    caseList.replaceChildren(...ToolkitCore.CASE_STYLES.map(({ id, label }) => renderCopyRow(label, result[id])));
+    caseResult.hidden = false;
+  }
+
+  caseForm.addEventListener('submit', (event) => { event.preventDefault(); runCaseConvert(); });
+
+  window.ToolkitApp = { convert, generateIds, copyText, clearIds, activateTool, runJson, runEncode, runJwtDecode, runRegexTest, runHash, runDiff, runCaseConvert };
 })();

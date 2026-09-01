@@ -28,21 +28,52 @@
             <p class="helper" id="timestamp-help">Examples: <code>0</code>, <code>1700000000000</code>, or <code>2024-01-01T00:00:00Z</code>.</p>
             <p class="form-error" id="timestamp-error" role="alert" hidden></p>
 
-            <label for="timezone">Display timezone <span class="optional">(optional)</span></label>
-            <input id="timezone" name="timezone" type="text" autocomplete="off" aria-describedby="timezone-help" placeholder="UTC" />
-            <p class="helper" id="timezone-help">IANA name, such as <code>Europe/Berlin</code>. Defaults to UTC.</p>
+            <label for="timezone">Display time zone</label>
+            <select id="timezone" name="timezone" aria-describedby="timezone-help"></select>
+            <p class="helper" id="timezone-help">Defaults to this computer&rsquo;s time zone.</p>
 
             <button class="button button-primary" type="submit">Convert timestamp</button>
           </form>
           <section class="result-card" id="convert-result" aria-live="polite" aria-label="Conversion result" hidden>
             <dl class="result-list">
-              <div><dt>UTC ISO</dt><dd id="result-utc"></dd></div>
-              <div><dt>Local time</dt><dd id="result-local"></dd></div>
-              <div><dt>Unix seconds</dt><dd id="result-seconds"></dd></div>
-              <div><dt>Unix milliseconds</dt><dd id="result-milliseconds"></dd></div>
-              <div><dt>Relative</dt><dd id="result-relative"></dd></div>
+              <div class="result-row">
+                <dt>UTC ISO</dt>
+                <dd>
+                  <span class="result-value" id="result-utc"></span>
+                  <button class="button button-secondary copy-one" type="button" data-copy-target="result-utc" aria-label="Copy UTC ISO value">Copy</button>
+                </dd>
+              </div>
+              <div class="result-row">
+                <dt id="result-local-label">Local time</dt>
+                <dd>
+                  <span class="result-value" id="result-local"></span>
+                  <button class="button button-secondary copy-one" type="button" data-copy-target="result-local" aria-label="Copy local time value">Copy</button>
+                </dd>
+              </div>
+              <div class="result-row">
+                <dt>Unix seconds</dt>
+                <dd>
+                  <span class="result-value" id="result-seconds"></span>
+                  <button class="button button-secondary copy-one" type="button" data-copy-target="result-seconds" aria-label="Copy Unix seconds value">Copy</button>
+                </dd>
+              </div>
+              <div class="result-row">
+                <dt>Unix milliseconds</dt>
+                <dd>
+                  <span class="result-value" id="result-milliseconds"></span>
+                  <button class="button button-secondary copy-one" type="button" data-copy-target="result-milliseconds" aria-label="Copy Unix milliseconds value">Copy</button>
+                </dd>
+              </div>
+              <div class="result-row">
+                <dt>Relative</dt>
+                <dd>
+                  <span class="result-value" id="result-relative"></span>
+                  <button class="button button-secondary copy-one" type="button" data-copy-target="result-relative" aria-label="Copy relative time value">Copy</button>
+                </dd>
+              </div>
             </dl>
           </section>
+          <p class="status" id="convert-status" aria-live="polite"></p>
         </article>
 
         <article class="tool-panel" aria-labelledby="uuid-title">

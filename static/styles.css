@@ -27,7 +27,7 @@ body {
   line-height: 1.5;
 }
 
-button, input { font: inherit; }
+button, input, select { font: inherit; }
 
 .page-shell { width: min(100% - 2rem, 76rem); margin: 0 auto; padding: clamp(2rem, 6vw, 5rem) 0; }
 .page-header { max-width: 43rem; margin-bottom: clamp(2rem, 5vw, 3.5rem); }
@@ -47,10 +47,10 @@ h3 { margin: 0; font-size: 1rem; }
 form { display: grid; gap: .55rem; }
 label { margin-top: .35rem; font-weight: 700; }
 .optional { color: var(--muted); font-weight: 400; }
-input { width: 100%; min-height: 44px; padding: .6rem .75rem; color: var(--text); background: #101827; border: 1px solid var(--border); border-radius: .5rem; }
+input, select { width: 100%; min-height: 44px; padding: .6rem .75rem; color: var(--text); background: #101827; border: 1px solid var(--border); border-radius: .5rem; }
 input::placeholder { color: #94a3b8; }
-input:hover { border-color: #94a3b8; }
-input:focus-visible, button:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+input:hover, select:hover { border-color: #94a3b8; }
+input:focus-visible, select:focus-visible, button:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 .helper, .form-error, .status { margin: 0; font-size: .9rem; }
 .form-error { color: var(--error); font-weight: 700; }
 
@@ -64,10 +64,13 @@ input:focus-visible, button:focus-visible { outline: 3px solid var(--focus); out
 .button-quiet { color: var(--muted); background: transparent; border-color: var(--border); }
 
 .result-card, .id-output { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border); }
+#convert-status:not(:empty) { margin-top: .85rem; }
 .result-list { display: grid; gap: .7rem; margin: 0; }
 .result-list > div { display: grid; gap: .15rem; }
 dt { color: var(--muted); font-size: .8rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
-dd { min-width: 0; margin: 0; overflow-wrap: anywhere; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+dd { min-width: 0; margin: 0; }
+.result-row > dd { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .5rem; align-items: center; }
+.result-value { min-width: 0; overflow-wrap: anywhere; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 .output-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .output-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
 .id-list { display: grid; gap: .5rem; padding: 0; margin: 1rem 0 0; list-style: none; }

@@ -99,7 +99,6 @@ function recoveryPage(error) {
 function createWindow() {
   mainWindow = new BrowserWindow({
     title: 'Toolkit',
-    titleBarStyle: 'hiddenInset',
     backgroundColor: '#101113',
     width: 1180,
     height: 780,

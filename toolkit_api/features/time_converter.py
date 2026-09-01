@@ -4,13 +4,14 @@ from datetime import UTC, datetime
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 
+class UnknownTimezoneError(ValueError):
+    """The requested display time zone is not available on this system."""
+
+
 def convert_timestamp(value: str, local_timezone: str | None = None) -> dict[str, str | int]:
     """Normalize ISO inputs and Unix seconds/milliseconds to display fields."""
     utc_datetime = _parse_timestamp(value)
-    try:
-        local_datetime = utc_datetime.astimezone(ZoneInfo(local_timezone or 'UTC'))
-    except ZoneInfoNotFoundError as error:
-        raise ValueError('Timezone is not recognized.') from error
+    local_datetime = utc_datetime.astimezone(_zone(local_timezone))
 
     return {
         'utc_iso': _format_iso(utc_datetime),
@@ -19,6 +20,15 @@ def convert_timestamp(value: str, local_timezone: str | None = None) -> dict[str
         'unix_milliseconds': int(utc_datetime.timestamp() * 1000),
         'relative_time': _relative_time(utc_datetime),
     }
+
+
+def _zone(local_timezone: str | None) -> ZoneInfo:
+    # ZoneInfo reports a missing zone and a rejected key differently, and both
+    # mean the same thing to the caller: pick another zone.
+    try:
+        return ZoneInfo(local_timezone or 'UTC')
+    except (ZoneInfoNotFoundError, ValueError) as error:
+        raise UnknownTimezoneError('Time zone is not recognized.') from error
 
 
 def _parse_timestamp(value: str) -> datetime:

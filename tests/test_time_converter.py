@@ -22,13 +22,28 @@ def test_invalid_input_is_actionable():
     assert 'ISO date/time' in response.json()['detail']
 
 
-def test_invalid_local_timezone_has_the_recovery_focused_error():
+def test_local_time_is_rendered_in_the_requested_zone():
+    result = convert_timestamp('1700000000', 'Europe/Berlin')
+
+    assert result['local_time'] == '2023-11-14T23:13:20+01:00'
+    assert result['utc_iso'] == '2023-11-14T22:13:20Z'
+
+
+def test_invalid_local_timezone_names_the_time_zone_not_the_timestamp():
     response = TestClient(create_app()).post(
         '/api/convert',
         json={'value': '0', 'local_timezone': 'Not/AZone'},
     )
 
     assert response.status_code == 422
-    assert response.json()['detail'] == (
-        'Enter an ISO date/time or Unix timestamp in seconds or milliseconds.'
+    assert response.json()['detail'] == 'Select a different display time zone.'
+
+
+def test_rejected_time_zone_key_is_reported_as_a_time_zone_problem():
+    response = TestClient(create_app()).post(
+        '/api/convert',
+        json={'value': '0', 'local_timezone': '/etc/localtime'},
     )
+
+    assert response.status_code == 422
+    assert response.json()['detail'] == 'Select a different display time zone.'

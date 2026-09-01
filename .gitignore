@@ -1,22 +1,15 @@
+# --- Repo-specific ---
 .worktrees/
 .superpowers/
-__pycache__/
-.pytest_cache/
-.venv/
-node_modules/
-dist/
-out/
-build/
-*.egg-info/
-<<<<<<< Updated upstream
-.DS_Store
-=======
-
 
 # --- Python ---
 __pycache__/
 *.py[cod]
 *$py.class
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+*.whl
 
 # --- Virtual envs ---
 .venv/
@@ -28,16 +21,15 @@ env/
 .env
 .env.*
 !.env.example
+gscreds.json
+*.pem
 
 # --- Build / packaging ---
 build/
 dist/
-*.egg-info/
-.eggs/
-pip-wheel-metadata/
-*.whl
+out/
 
-# --- JS / Bun (root + packages/*; each apps/web-* has its own .gitignore too) ---
+# --- JS ---
 node_modules/
 
 # --- Test / tooling caches ---
@@ -57,14 +49,6 @@ apps/web-regular/.impeccable/hook.cache.json
 .DS_Store
 Thumbs.db
 
-__pycache__/
-*.py[cod]
-.env
-*.egg-info/
-# Google Sheets service-account credentials (do not commit)
-gscreds.json
-*.pem
-
 # Conductor workspace — generated per-workspace, never shared
 .workspace-config
 docker-compose.workspace.yml
@@ -75,4 +59,3 @@ requestly-api/
 # settings.json) is committed instead
 .conductor/settings.local.toml
 .claude/settings.local.json
->>>>>>> Stashed changes

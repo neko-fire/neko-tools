@@ -32,12 +32,15 @@ Only checkable in the built app, not in the browser:
 
 1. The window opens titled **Toolkit** at a readable size, with no white flash
    before the page paints.
-2. Cmd-Q quits, Cmd-C and Cmd-V work in the input fields, and the Edit menu
+2. The window opens at roughly 700×820 — small enough to sit in one half of a
+   13" MacBook Air screen in Split View. Resizing below roughly 480×560 is
+   refused.
+3. Cmd-Q quits, Cmd-C and Cmd-V work in the input fields, and the Edit menu
    lists them.
-3. Resizing below the minimum window size is refused rather than clipping the
+4. Resizing below the minimum window size is refused rather than clipping the
    panels.
-4. Closing the window quits the app, leaving no stray process.
-5. Reopening from the Dock after closing the window brings the window back.
+5. Closing the window quits the app, leaving no stray process.
+6. Reopening from the Dock after closing the window brings the window back.
 
 ## Packaged build
 

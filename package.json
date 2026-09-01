@@ -20,6 +20,14 @@
   "build": {
     "appId": "com.martinbayer.toolkit",
     "productName": "Toolkit",
+    "files": [
+      "electron/**/*",
+      "!electron/assets",
+      "package.json"
+    ],
+    "electronLanguages": [
+      "en"
+    ],
     "afterPack": "scripts/adhoc-sign.cjs",
     "mac": {
       "target": [

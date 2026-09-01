@@ -1,12 +1,13 @@
 const { app, BrowserWindow } = require('electron');
 const { spawn } = require('node:child_process');
 const http = require('node:http');
+const net = require('node:net');
 const path = require('node:path');
 
 const HOST = '127.0.0.1';
-const PORT = 8765;
-const HEALTH_URL = `http://${HOST}:${PORT}/api/health`;
-const STARTUP_TIMEOUT_MS = 10_000;
+// macOS scans a newly installed binary on its first launch, which can take
+// far longer than a warm start, so the first run needs a generous budget.
+const STARTUP_TIMEOUT_MS = 60_000;
 
 let mainWindow;
 let serverProcess;
@@ -16,9 +17,22 @@ function pythonCommand() {
   return process.env.TOOLKIT_PYTHON || (process.platform === 'win32' ? 'python' : 'python3');
 }
 
-function checkHealth() {
+// A fixed port would let a leftover or unrelated process answer the health
+// check, so the window could load a stale server instead of this one.
+function reservePort() {
+  return new Promise((resolve, reject) => {
+    const reservation = net.createServer();
+    reservation.once('error', reject);
+    reservation.listen(0, HOST, () => {
+      const { port } = reservation.address();
+      reservation.close((error) => (error ? reject(error) : resolve(port)));
+    });
+  });
+}
+
+function checkHealth(port) {
   return new Promise((resolve) => {
-    const request = http.get(HEALTH_URL, (response) => {
+    const request = http.get(`http://${HOST}:${port}/api/health`, (response) => {
       response.resume();
       resolve(response.statusCode === 200);
     });
@@ -30,13 +44,16 @@ function checkHealth() {
   });
 }
 
-async function waitForHealth() {
+async function waitForHealth(port) {
   const deadline = Date.now() + STARTUP_TIMEOUT_MS;
   while (Date.now() < deadline) {
-    if (await checkHealth()) return;
+    if (serverProcess && serverProcess.exitCode === null && await checkHealth(port)) return;
+    if (serverProcess && serverProcess.exitCode !== null) {
+      throw new Error(`The Toolkit server stopped during startup (exit ${serverProcess.exitCode}).`);
+    }
     await new Promise((resolve) => setTimeout(resolve, 200));
   }
-  throw new Error(`Toolkit did not become ready at ${HEALTH_URL}.`);
+  throw new Error(`Toolkit did not become ready on port ${port}.`);
 }
 
 function stopServer() {
@@ -44,25 +61,25 @@ function stopServer() {
   serverProcess = undefined;
 }
 
-function serverCommand() {
+function serverCommand(port) {
   if (app.isPackaged) {
     return {
       command: path.join(process.resourcesPath, 'server', 'toolkit-server', 'toolkit-server'),
-      arguments: ['--host', HOST, '--port', String(PORT)],
+      commandArguments: ['--host', HOST, '--port', String(port)],
       cwd: process.resourcesPath,
     };
   }
   return {
     command: pythonCommand(),
-    arguments: ['-m', 'uvicorn', 'toolkit_api.main:app', '--host', HOST, '--port', String(PORT)],
+    commandArguments: ['-m', 'uvicorn', 'toolkit_api.main:app', '--host', HOST, '--port', String(port)],
     cwd: path.resolve(__dirname, '..'),
   };
 }
 
-function startServer() {
+function startServer(port) {
   return new Promise((resolve, reject) => {
-    const { command, arguments, cwd } = serverCommand();
-    serverProcess = spawn(command, arguments, { cwd, stdio: 'ignore' });
+    const { command, commandArguments, cwd } = serverCommand(port);
+    serverProcess = spawn(command, commandArguments, { cwd, stdio: 'ignore' });
     serverProcess.once('error', (error) => {
       stopServer();
       reject(new Error(`Could not run ${command}: ${error.message}`));
@@ -100,9 +117,10 @@ function createWindow() {
 async function openToolkitWindow() {
   const window = createWindow();
   try {
-    await startServer();
-    await waitForHealth();
-    await window.loadURL(`http://${HOST}:${PORT}`);
+    const port = await reservePort();
+    await startServer(port);
+    await waitForHealth(port);
+    await window.loadURL(`http://${HOST}:${port}`);
   } catch (error) {
     stopServer();
     await window.loadURL(recoveryPage(error));

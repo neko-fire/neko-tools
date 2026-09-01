@@ -137,3 +137,88 @@ configured or verified. This is separate from the unresolved health probe.
 
 - `4c1e4f7 fix: bundle standalone Electron server`
 - This report is committed separately immediately after this update.
+
+## Round 1: Smoke-test false-positive hardening
+
+### Issue
+
+The first smoke test used the fixed port `18765` and accepted only an HTTP
+health response. A pre-existing process on that port could therefore satisfy
+the assertion even if the bundled executable failed immediately.
+
+### RED reproduction
+
+Added `tests/packaged-server-smoke-regression.cjs`. It binds an impostor HTTP
+server on `127.0.0.1:18765`, returns the expected health JSON, and invokes the
+smoke test with `TOOLKIT_SERVER_PATH=/usr/bin/false`.
+
+Command:
+
+```text
+node tests/packaged-server-smoke-regression.cjs
+```
+
+Pre-fix output:
+
+```text
+AssertionError [ERR_ASSERTION]: smoke test accepted a pre-existing health server after its spawned executable failed
+```
+
+### Fix
+
+`tests/packaged-server-smoke.cjs` now:
+
+- reserves an OS-selected loopback port for each run and passes that exact port
+  to the executable and health client;
+- rejects startup immediately when the spawned child has exited or been
+  signalled;
+- asserts that the child remains alive at the instant its `200` health response
+  is accepted; and
+- starts the child in a dedicated process group and terminates that group during
+  cleanup, preventing later runs from inheriting a stale server.
+
+This combination binds the health response to the process under test by an
+isolated per-run port and lifecycle checks; the fixed-port impostor cannot
+satisfy it.
+
+### GREEN evidence
+
+Focused regression:
+
+```text
+node tests/packaged-server-smoke-regression.cjs
+packaged server smoke regression test passed
+```
+
+Bundled-build smoke:
+
+```text
+npm run test:packaged-server
+INFO:     Uvicorn running on http://127.0.0.1:52148 (Press CTRL+C to quit)
+INFO:     127.0.0.1:52151 - "GET /api/health HTTP/1.1" 200 OK
+packaged server smoke test passed
+```
+
+Package verification:
+
+```text
+npm run package:mac
+PyInstaller: 6.22.2
+Platform: macOS-26.6-arm64-arm-64bit-Mach-O
+EXE target arch: arm64
+packaged server smoke test passed
+• building        target=DMG arch=arm64 file=dist/Toolkit-0.1.0-arm64.dmg
+```
+
+Copied-resource clean-environment verification:
+
+```text
+TOOLKIT_SERVER_PATH='dist/mac-arm64/Toolkit.app/Contents/Resources/server/toolkit-server/toolkit-server' npm run test:packaged-server
+INFO:     Uvicorn running on http://127.0.0.1:63811 (Press CTRL+C to quit)
+INFO:     127.0.0.1:63832 - "GET /api/health HTTP/1.1" 200 OK
+packaged server smoke test passed
+```
+
+### Round 1 commit
+
+Recorded after this report update is committed.

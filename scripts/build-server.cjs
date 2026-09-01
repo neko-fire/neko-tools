@@ -7,7 +7,7 @@ const buildDirectory = path.join(projectDirectory, 'build');
 const distDirectory = path.join(buildDirectory, 'server');
 const pyinstallerDirectory = path.join(buildDirectory, 'pyinstaller');
 const pyinstallerConfigDirectory = path.join(buildDirectory, 'pyinstaller-config');
-const python = process.env.TOOLKIT_PYTHON || process.env.PYTHON || 'python';
+const python = process.env.TOOLKIT_PYTHON || process.env.PYTHON || 'python3';
 const staticData = `${path.join(projectDirectory, 'static')}${path.delimiter}static`;
 
 rmSync(distDirectory, { force: true, recursive: true });

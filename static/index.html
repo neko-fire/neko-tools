@@ -24,6 +24,9 @@
           <li role="presentation">
             <button class="nav-item" type="button" role="tab" data-tool="encode" aria-selected="false">Encode/Decode</button>
           </li>
+          <li role="presentation">
+            <button class="nav-item" type="button" role="tab" data-tool="jwt" aria-selected="false">JWT</button>
+          </li>
         </ul>
       </nav>
       <main class="tool-content" aria-label="Neko Toolkit">
@@ -168,6 +171,35 @@
             <pre class="output-block"><code id="encode-output"></code></pre>
           </section>
           <p class="status" id="encode-status" aria-live="polite"></p>
+        </article>
+
+        <article class="tool-panel" id="tool-jwt" data-tool-panel="jwt" aria-labelledby="jwt-title" hidden>
+          <div class="panel-heading">
+            <p class="panel-kicker">05 / AUTH</p>
+            <h2 id="jwt-title">JWT decoder</h2>
+            <p>Decodes the header and payload. The signature is never verified.</p>
+          </div>
+          <form id="jwt-form" novalidate>
+            <label for="jwt-input">Token</label>
+            <textarea id="jwt-input" name="jwt-input" rows="4" spellcheck="false" aria-describedby="jwt-error" required></textarea>
+            <p class="form-error" id="jwt-error" role="alert" hidden></p>
+            <button class="button button-primary" type="submit">Decode</button>
+          </form>
+          <section class="result-card" id="jwt-result" aria-live="polite" aria-label="JWT result" hidden>
+            <div class="output-heading">
+              <h3>Header</h3>
+              <button class="button button-secondary copy-one" type="button" data-copy-target="jwt-header" data-copy-label="JWT header">Copy</button>
+            </div>
+            <pre class="output-block"><code id="jwt-header"></code></pre>
+            <div class="output-heading">
+              <h3>Payload</h3>
+              <button class="button button-secondary copy-one" type="button" data-copy-target="jwt-payload" data-copy-label="JWT payload">Copy</button>
+            </div>
+            <pre class="output-block"><code id="jwt-payload"></code></pre>
+            <dl class="result-list" id="jwt-dates" hidden></dl>
+            <p class="helper">Signature not verified.</p>
+          </section>
+          <p class="status" id="jwt-status" aria-live="polite"></p>
         </article>
       </main>
     </div>

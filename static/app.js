@@ -244,5 +244,57 @@
   encodeForm.addEventListener('submit', (event) => { event.preventDefault(); runEncode('encode'); });
   encodeForm.querySelector('[data-encode-action="decode"]').addEventListener('click', () => runEncode('decode'));
 
-  window.ToolkitApp = { convert, generateIds, copyText, clearIds, activateTool, runJson, runEncode };
+  // --- JWT decoder ---
+
+  const jwtForm = document.querySelector('#jwt-form');
+  const jwtInput = document.querySelector('#jwt-input');
+  const jwtError = document.querySelector('#jwt-error');
+  const jwtResult = document.querySelector('#jwt-result');
+  const jwtHeader = document.querySelector('#jwt-header');
+  const jwtPayload = document.querySelector('#jwt-payload');
+  const jwtDates = document.querySelector('#jwt-dates');
+  const jwtStatus = document.querySelector('#jwt-status');
+
+  const JWT_DATE_FIELDS = ['exp', 'iat', 'nbf'];
+
+  function renderJwtDates(payload) {
+    const fields = JWT_DATE_FIELDS.filter((field) => typeof payload[field] === 'number');
+    jwtDates.replaceChildren(...fields.map((field) => {
+      const row = document.createElement('div');
+      row.className = 'result-row';
+      const dt = document.createElement('dt');
+      dt.textContent = field;
+      const dd = document.createElement('dd');
+      const value = document.createElement('span');
+      value.className = 'result-value';
+      value.textContent = `${payload[field]} — ${ToolkitCore.convertTimestamp(String(payload[field]), 'UTC').utc_iso}`;
+      dd.append(value);
+      row.append(dt, dd);
+      return row;
+    }));
+    jwtDates.hidden = fields.length === 0;
+  }
+
+  function runJwtDecode() {
+    setError(jwtError, '');
+    jwtStatus.textContent = '';
+    try {
+      const { header, payload } = ToolkitCore.decodeJwt(jwtInput.value);
+      jwtHeader.textContent = JSON.stringify(header, null, 2);
+      jwtPayload.textContent = JSON.stringify(payload, null, 2);
+      renderJwtDates(payload);
+      jwtResult.hidden = false;
+    } catch (error) {
+      jwtResult.hidden = true;
+      setError(jwtError, error.message);
+      jwtInput.setAttribute('aria-invalid', 'true');
+      jwtInput.focus();
+    } finally {
+      if (jwtError.hidden) jwtInput.removeAttribute('aria-invalid');
+    }
+  }
+
+  jwtForm.addEventListener('submit', (event) => { event.preventDefault(); runJwtDecode(); });
+
+  window.ToolkitApp = { convert, generateIds, copyText, clearIds, activateTool, runJson, runEncode, runJwtDecode };
 })();

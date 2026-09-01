@@ -8,11 +8,13 @@ const {
   minifyJson,
   encodeText,
   decodeText,
+  decodeJwt,
   UNKNOWN_TIMEZONE_MESSAGE,
   INVALID_TIMESTAMP_MESSAGE,
   INVALID_UUID_COUNT_MESSAGE,
   INVALID_JSON_MESSAGE,
   INVALID_ENCODING_INPUT_MESSAGE,
+  INVALID_JWT_MESSAGE,
 } = require('../static/toolkit-core.js');
 
 // --- Timestamp conversion (ported from tests/test_time_converter.py) ---
@@ -241,4 +243,26 @@ test('odd-length hex is rejected', () => {
 
 test('non-hex characters are rejected', () => {
   assert.throws(() => decodeText('hex', 'zz'), { message: INVALID_ENCODING_INPUT_MESSAGE });
+});
+
+// --- JWT decoder ---
+
+test('a valid token is decoded into header and payload', () => {
+  const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWF0IjoxNTE2MjM5MDIyfQ.SIGNATURE';
+  const result = decodeJwt(token);
+
+  assert.deepEqual(result.header, { alg: 'HS256', typ: 'JWT' });
+  assert.deepEqual(result.payload, { sub: '1234567890', iat: 1516239022 });
+});
+
+test('a token missing a segment is rejected', () => {
+  assert.throws(() => decodeJwt('only.two'), { message: INVALID_JWT_MESSAGE });
+});
+
+test('a segment that is not valid base64url JSON is rejected', () => {
+  assert.throws(() => decodeJwt('not-json.also-not-json.sig'), { message: INVALID_JWT_MESSAGE });
+});
+
+test('empty input is rejected', () => {
+  assert.throws(() => decodeJwt(''), { message: INVALID_JWT_MESSAGE });
 });

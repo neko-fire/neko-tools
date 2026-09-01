@@ -16,6 +16,7 @@
   const INVALID_UUID_COUNT_MESSAGE = 'Choose a quantity between 1 and 100.';
   const INVALID_JSON_MESSAGE = 'Enter valid JSON.';
   const INVALID_ENCODING_INPUT_MESSAGE = 'That input cannot be decoded with the selected format.';
+  const INVALID_JWT_MESSAGE = 'Enter a JWT with three dot-separated segments.';
 
   // Below this, a number reads as seconds; at or above it, as milliseconds.
   const MILLISECOND_THRESHOLD = 100000000000;
@@ -262,6 +263,28 @@
     }
   }
 
+  // --- JWT decoder ---
+
+  function decodeJwtSegment(segment) {
+    try {
+      const padded = segment.replace(/-/g, '+').replace(/_/g, '/');
+      const bytes = base64ToBytes(padded.padEnd(padded.length + (4 - (padded.length % 4)) % 4, '='));
+      return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+    } catch (error) {
+      throw new Error(INVALID_JWT_MESSAGE);
+    }
+  }
+
+  function decodeJwt(value) {
+    const segments = String(value).trim().split('.');
+    if (segments.length !== 3 || segments.some((segment) => !segment)) throw new Error(INVALID_JWT_MESSAGE);
+
+    return {
+      header: decodeJwtSegment(segments[0]),
+      payload: decodeJwtSegment(segments[1]),
+    };
+  }
+
   return {
     convertTimestamp,
     generateUuid7Batch,
@@ -269,10 +292,12 @@
     minifyJson,
     encodeText,
     decodeText,
+    decodeJwt,
     INVALID_TIMESTAMP_MESSAGE,
     UNKNOWN_TIMEZONE_MESSAGE,
     INVALID_UUID_COUNT_MESSAGE,
     INVALID_JSON_MESSAGE,
     INVALID_ENCODING_INPUT_MESSAGE,
+    INVALID_JWT_MESSAGE,
   };
 });

@@ -27,6 +27,9 @@ directly in a browser with `npm run dev`. Verify the following:
     to one line, and shows an inline error for `{invalid}` instead of a result.
 12. The Encode/Decode tool converts `hello` to Base64 `aGVsbG8=` and back, and
     shows an inline error when decoding `zz` as Hex.
+13. The JWT decoder splits a valid token into header and payload JSON, shows a
+    human-readable date next to `iat`, and always shows "Signature not
+    verified."
 
 Accessibility checks: every action is reachable with Tab, focused controls
 are visibly indicated, each Copy button has a distinct accessible name, the

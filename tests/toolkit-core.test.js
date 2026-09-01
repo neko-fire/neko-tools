@@ -11,6 +11,7 @@ const {
   decodeJwt,
   testRegex,
   hashText,
+  diffLines,
   UNKNOWN_TIMEZONE_MESSAGE,
   INVALID_TIMESTAMP_MESSAGE,
   INVALID_UUID_COUNT_MESSAGE,
@@ -323,4 +324,59 @@ test('SHA-384 and SHA-512 digests have the expected lengths', async () => {
 
   assert.equal(result['SHA-384'].length, 96);
   assert.equal(result['SHA-512'].length, 128);
+});
+
+// --- Diff viewer ---
+
+test('identical text has no changes', () => {
+  const result = diffLines('a\nb\nc', 'a\nb\nc');
+
+  assert.ok(result.every((line) => line.type === 'unchanged'));
+  assert.deepEqual(result.map((line) => line.value), ['a', 'b', 'c']);
+});
+
+test('an added line is marked added', () => {
+  const result = diffLines('a\nb', 'a\nx\nb');
+
+  assert.deepEqual(result, [
+    { type: 'unchanged', value: 'a' },
+    { type: 'added', value: 'x' },
+    { type: 'unchanged', value: 'b' },
+  ]);
+});
+
+test('a removed line is marked removed', () => {
+  const result = diffLines('a\nx\nb', 'a\nb');
+
+  assert.deepEqual(result, [
+    { type: 'unchanged', value: 'a' },
+    { type: 'removed', value: 'x' },
+    { type: 'unchanged', value: 'b' },
+  ]);
+});
+
+test('a changed line is a removal followed by an addition', () => {
+  const result = diffLines('a\nb\nc', 'a\nB\nc');
+
+  assert.deepEqual(result, [
+    { type: 'unchanged', value: 'a' },
+    { type: 'removed', value: 'b' },
+    { type: 'added', value: 'B' },
+    { type: 'unchanged', value: 'c' },
+  ]);
+});
+
+test('two completely different texts are all removed then all added', () => {
+  const result = diffLines('a\nb', 'x\ny');
+
+  assert.deepEqual(result, [
+    { type: 'removed', value: 'a' },
+    { type: 'removed', value: 'b' },
+    { type: 'added', value: 'x' },
+    { type: 'added', value: 'y' },
+  ]);
+});
+
+test('empty input diffs against an empty line', () => {
+  assert.deepEqual(diffLines('', ''), [{ type: 'unchanged', value: '' }]);
 });

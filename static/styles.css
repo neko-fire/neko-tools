@@ -89,6 +89,13 @@ dd { min-width: 0; margin: 0; }
 .flag-set label { display: inline-flex; align-items: center; gap: .35rem; font-weight: 400; margin-top: 0; }
 mark { background: var(--accent); color: var(--accent-text); border-radius: .2rem; padding: 0 .15rem; }
 
+.diff-line { display: block; padding: 0 .3rem; }
+.diff-line.added { background: color-mix(in srgb, #22c55e 22%, transparent); }
+.diff-line.removed { background: color-mix(in srgb, #ef4444 22%, transparent); }
+.diff-line::before { display: inline-block; width: 1.2em; color: var(--muted); content: ' '; }
+.diff-line.added::before { content: '+'; color: #4ade80; }
+.diff-line.removed::before { content: '-'; color: #f87171; }
+
 @keyframes reveal { to { opacity: 1; transform: translateY(0); } }
 @media (max-width: 30rem) { .output-heading { align-items: flex-start; flex-direction: column; } .output-actions { width: 100%; } .output-actions .button { flex: 1; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; } }

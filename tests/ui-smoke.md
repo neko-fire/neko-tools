@@ -34,6 +34,8 @@ directly in a browser with `npm run dev`. Verify the following:
     checked, lists 2 matches, and shows an inline error for the pattern `(`.
 15. The hash generator produces four digests for `abc`, and the SHA-256 row's
     Copy button copies the correct value.
+16. The diff viewer marks a changed middle line as one removed line followed by
+    one added line, each visually distinct.
 
 Accessibility checks: every action is reachable with Tab, focused controls
 are visibly indicated, each Copy button has a distinct accessible name, the

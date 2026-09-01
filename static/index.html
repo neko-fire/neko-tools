@@ -33,6 +33,9 @@
           <li role="presentation">
             <button class="nav-item" type="button" role="tab" data-tool="hash" aria-selected="false">Hash</button>
           </li>
+          <li role="presentation">
+            <button class="nav-item" type="button" role="tab" data-tool="diff" aria-selected="false">Diff</button>
+          </li>
         </ul>
       </nav>
       <main class="tool-content" aria-label="Neko Toolkit">
@@ -254,6 +257,25 @@
             <dl class="result-list" id="hash-list"></dl>
           </section>
           <p class="status" id="hash-status" aria-live="polite"></p>
+        </article>
+
+        <article class="tool-panel" id="tool-diff" data-tool-panel="diff" aria-labelledby="diff-title" hidden>
+          <div class="panel-heading">
+            <p class="panel-kicker">08 / DIFF</p>
+            <h2 id="diff-title">Diff viewer</h2>
+            <p>Compares two texts line by line. Sized for short snippets, not large files.</p>
+          </div>
+          <form id="diff-form" novalidate>
+            <label for="diff-a">Text A</label>
+            <textarea id="diff-a" name="diff-a" rows="6" spellcheck="false"></textarea>
+            <label for="diff-b">Text B</label>
+            <textarea id="diff-b" name="diff-b" rows="6" spellcheck="false"></textarea>
+            <button class="button button-primary" type="submit">Compare</button>
+          </form>
+          <section class="result-card" id="diff-result" aria-live="polite" aria-label="Diff result" hidden>
+            <pre class="output-block" id="diff-output"></pre>
+          </section>
+          <p class="status" id="diff-status" aria-live="polite"></p>
         </article>
       </main>
     </div>

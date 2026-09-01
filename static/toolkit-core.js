@@ -329,6 +329,57 @@
     }, {});
   }
 
+  // --- Diff viewer ---
+
+  // Standard dynamic-programming LCS, returning matched [indexA, indexB] pairs in order.
+  function longestCommonSubsequence(linesA, linesB) {
+    const lengths = Array.from({ length: linesA.length + 1 }, () => new Uint32Array(linesB.length + 1));
+    for (let i = linesA.length - 1; i >= 0; i -= 1) {
+      for (let j = linesB.length - 1; j >= 0; j -= 1) {
+        lengths[i][j] = linesA[i] === linesB[j]
+          ? lengths[i + 1][j + 1] + 1
+          : Math.max(lengths[i + 1][j], lengths[i][j + 1]);
+      }
+    }
+
+    const pairs = [];
+    let i = 0;
+    let j = 0;
+    while (i < linesA.length && j < linesB.length) {
+      if (linesA[i] === linesB[j]) {
+        pairs.push([i, j]);
+        i += 1;
+        j += 1;
+      } else if (lengths[i + 1][j] >= lengths[i][j + 1]) {
+        i += 1;
+      } else {
+        j += 1;
+      }
+    }
+    return pairs;
+  }
+
+  // O(n*m) time and space, sized for clipboard-length text, not large files.
+  function diffLines(textA, textB) {
+    const linesA = String(textA).split('\n');
+    const linesB = String(textB).split('\n');
+    const pairs = longestCommonSubsequence(linesA, linesB);
+
+    const result = [];
+    let indexA = 0;
+    let indexB = 0;
+    pairs.forEach(([pairA, pairB]) => {
+      while (indexA < pairA) result.push({ type: 'removed', value: linesA[indexA++] });
+      while (indexB < pairB) result.push({ type: 'added', value: linesB[indexB++] });
+      result.push({ type: 'unchanged', value: linesA[indexA] });
+      indexA += 1;
+      indexB += 1;
+    });
+    while (indexA < linesA.length) result.push({ type: 'removed', value: linesA[indexA++] });
+    while (indexB < linesB.length) result.push({ type: 'added', value: linesB[indexB++] });
+    return result;
+  }
+
   return {
     convertTimestamp,
     generateUuid7Batch,
@@ -339,6 +390,7 @@
     decodeJwt,
     testRegex,
     hashText,
+    diffLines,
     HASH_ALGORITHMS,
     INVALID_TIMESTAMP_MESSAGE,
     UNKNOWN_TIMEZONE_MESSAGE,

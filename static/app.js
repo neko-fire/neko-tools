@@ -402,5 +402,31 @@
 
   hashForm.addEventListener('submit', (event) => { event.preventDefault(); runHash(); });
 
-  window.ToolkitApp = { convert, generateIds, copyText, clearIds, activateTool, runJson, runEncode, runJwtDecode, runRegexTest, runHash };
+  // --- Diff viewer ---
+
+  const diffForm = document.querySelector('#diff-form');
+  const diffA = document.querySelector('#diff-a');
+  const diffB = document.querySelector('#diff-b');
+  const diffResult = document.querySelector('#diff-result');
+  const diffOutput = document.querySelector('#diff-output');
+  const diffStatus = document.querySelector('#diff-status');
+
+  function renderDiff(lines) {
+    diffOutput.replaceChildren(...lines.map((line) => {
+      const row = document.createElement('span');
+      row.className = `diff-line ${line.type}`;
+      row.textContent = line.value;
+      return row;
+    }));
+  }
+
+  function runDiff() {
+    diffStatus.textContent = '';
+    renderDiff(ToolkitCore.diffLines(diffA.value, diffB.value));
+    diffResult.hidden = false;
+  }
+
+  diffForm.addEventListener('submit', (event) => { event.preventDefault(); runDiff(); });
+
+  window.ToolkitApp = { convert, generateIds, copyText, clearIds, activateTool, runJson, runEncode, runJwtDecode, runRegexTest, runHash, runDiff };
 })();

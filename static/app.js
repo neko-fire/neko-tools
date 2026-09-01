@@ -136,6 +136,32 @@
     uuidStatus.textContent = 'Generated IDs cleared from this session.';
   }
 
+  // --- JSON formatter/validator ---
+
+  const jsonForm = document.querySelector('#json-form');
+  const jsonInput = document.querySelector('#json-input');
+  const jsonError = document.querySelector('#json-error');
+  const jsonResult = document.querySelector('#json-result');
+  const jsonOutput = document.querySelector('#json-output');
+  const jsonStatus = document.querySelector('#json-status');
+
+  function runJson(action) {
+    setError(jsonError, '');
+    jsonStatus.textContent = '';
+    try {
+      const text = action === 'minify' ? ToolkitCore.minifyJson(jsonInput.value) : ToolkitCore.formatJson(jsonInput.value);
+      jsonOutput.textContent = text;
+      jsonResult.hidden = false;
+    } catch (error) {
+      jsonResult.hidden = true;
+      setError(jsonError, error.message);
+      jsonInput.setAttribute('aria-invalid', 'true');
+      jsonInput.focus();
+    } finally {
+      if (jsonError.hidden) jsonInput.removeAttribute('aria-invalid');
+    }
+  }
+
   // --- Tab navigation ---
 
   const navButtons = [...document.querySelectorAll('.nav-item')];
@@ -183,5 +209,8 @@
   copyAllButton.addEventListener('click', () => copyText(generatedIds.join('\n'), `Copied all ${generatedIds.length} IDs.`, uuidStatus));
   clearButton.addEventListener('click', clearIds);
 
-  window.ToolkitApp = { convert, generateIds, copyText, clearIds, activateTool };
+  jsonForm.addEventListener('submit', (event) => { event.preventDefault(); runJson('format'); });
+  jsonForm.querySelector('[data-json-action="minify"]').addEventListener('click', () => runJson('minify'));
+
+  window.ToolkitApp = { convert, generateIds, copyText, clearIds, activateTool, runJson };
 })();

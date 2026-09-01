@@ -14,6 +14,7 @@
   const INVALID_TIMESTAMP_MESSAGE = 'Enter an ISO date/time or Unix timestamp in seconds or milliseconds.';
   const UNKNOWN_TIMEZONE_MESSAGE = 'Select a different display time zone.';
   const INVALID_UUID_COUNT_MESSAGE = 'Choose a quantity between 1 and 100.';
+  const INVALID_JSON_MESSAGE = 'Enter valid JSON.';
 
   // Below this, a number reads as seconds; at or above it, as milliseconds.
   const MILLISECOND_THRESHOLD = 100000000000;
@@ -201,11 +202,32 @@
     return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
   }
 
+  // --- JSON formatter/validator ---
+
+  function parseJsonOrThrow(value) {
+    try {
+      return JSON.parse(String(value));
+    } catch (error) {
+      throw new Error(`${INVALID_JSON_MESSAGE} ${error.message}`);
+    }
+  }
+
+  function formatJson(value) {
+    return `${JSON.stringify(parseJsonOrThrow(value), null, 2)}\n`;
+  }
+
+  function minifyJson(value) {
+    return JSON.stringify(parseJsonOrThrow(value));
+  }
+
   return {
     convertTimestamp,
     generateUuid7Batch,
+    formatJson,
+    minifyJson,
     INVALID_TIMESTAMP_MESSAGE,
     UNKNOWN_TIMEZONE_MESSAGE,
     INVALID_UUID_COUNT_MESSAGE,
+    INVALID_JSON_MESSAGE,
   };
 });

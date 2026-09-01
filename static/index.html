@@ -18,6 +18,9 @@
           <li role="presentation">
             <button class="nav-item" type="button" role="tab" data-tool="uuid" aria-selected="false">UUIDv7</button>
           </li>
+          <li role="presentation">
+            <button class="nav-item" type="button" role="tab" data-tool="json" aria-selected="false">JSON</button>
+          </li>
         </ul>
       </nav>
       <main class="tool-content" aria-label="Neko Toolkit">
@@ -106,6 +109,31 @@
             <p class="status" id="uuid-status" aria-live="polite">No IDs generated in this session.</p>
             <ul class="id-list" id="id-list" aria-live="polite" aria-label="Generated UUIDs"></ul>
           </section>
+        </article>
+
+        <article class="tool-panel" id="tool-json" data-tool-panel="json" aria-labelledby="json-title" hidden>
+          <div class="panel-heading">
+            <p class="panel-kicker">03 / JSON</p>
+            <h2 id="json-title">JSON formatter</h2>
+            <p>Paste JSON to format it or minify it.</p>
+          </div>
+          <form id="json-form" novalidate>
+            <label for="json-input">JSON input</label>
+            <textarea id="json-input" name="json-input" rows="8" spellcheck="false" aria-describedby="json-error" required></textarea>
+            <p class="form-error" id="json-error" role="alert" hidden></p>
+            <div class="button-row">
+              <button class="button button-primary" type="submit" data-json-action="format">Format</button>
+              <button class="button button-secondary" type="button" data-json-action="minify">Minify</button>
+            </div>
+          </form>
+          <section class="result-card" id="json-result" aria-live="polite" aria-label="JSON result" hidden>
+            <div class="output-heading">
+              <h3>Result</h3>
+              <button class="button button-secondary copy-one" type="button" data-copy-target="json-output" data-copy-label="JSON result">Copy</button>
+            </div>
+            <pre class="output-block"><code id="json-output"></code></pre>
+          </section>
+          <p class="status" id="json-status" aria-live="polite"></p>
         </article>
       </main>
     </div>

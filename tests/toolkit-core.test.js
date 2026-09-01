@@ -4,9 +4,12 @@ const { test } = require('node:test');
 const {
   convertTimestamp,
   generateUuid7Batch,
+  formatJson,
+  minifyJson,
   UNKNOWN_TIMEZONE_MESSAGE,
   INVALID_TIMESTAMP_MESSAGE,
   INVALID_UUID_COUNT_MESSAGE,
+  INVALID_JSON_MESSAGE,
 } = require('../static/toolkit-core.js');
 
 // --- Timestamp conversion (ported from tests/test_time_converter.py) ---
@@ -177,4 +180,25 @@ test('generated ids are unique and ordered by time', () => {
 
   assert.equal(new Set(values).size, 100);
   assert.deepEqual([...values].sort(), values, 'v7 ids should sort in generation order');
+});
+
+// --- JSON formatter/validator ---
+
+test('valid JSON is pretty-printed with two-space indent', () => {
+  assert.equal(formatJson('{"a":1,"b":[2,3]}'), '{\n  "a": 1,\n  "b": [\n    2,\n    3\n  ]\n}\n');
+});
+
+test('valid JSON is minified', () => {
+  assert.equal(minifyJson('{\n  "a": 1\n}'), '{"a":1}');
+});
+
+test('invalid JSON surfaces the native parse error', () => {
+  assert.throws(() => formatJson('{invalid}'), (error) => {
+    assert.match(error.message, /^Enter valid JSON\./);
+    return true;
+  });
+});
+
+test('empty input is rejected', () => {
+  assert.throws(() => formatJson(''), { message: /Enter valid JSON\./ });
 });

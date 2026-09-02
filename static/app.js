@@ -1,6 +1,8 @@
 (() => {
   'use strict';
 
+  const TOOL_STORAGE_KEY = 'toolkit.activeTool';
+
   const generatedIds = [];
   const convertForm = document.querySelector('#convert-form');
   const uuidForm = document.querySelector('#uuid-form');
@@ -80,7 +82,7 @@
       copyButton.type = 'button';
       copyButton.textContent = 'Copy';
       copyButton.setAttribute('aria-label', `Copy ${id}`);
-      copyButton.addEventListener('click', () => copyText(id, `Copied ${id}.`));
+      copyButton.addEventListener('click', () => copyText(id, `Copied ${id}.`, uuidStatus));
       item.append(value, copyButton);
       idList.append(item);
     });
@@ -106,7 +108,7 @@
     }
   }
 
-  async function copyText(text, successMessage = 'Copied to clipboard.', statusElement = uuidStatus) {
+  async function copyText(text, successMessage, statusElement) {
     try {
       await navigator.clipboard.writeText(text);
       statusElement.textContent = successMessage;
@@ -117,10 +119,40 @@
     }
   }
 
+  // Works for any tool's copy button: a `data-copy-label` on the button wins;
+  // otherwise the label comes from the sibling <dt> in the same .result-row
+  // (this is what lets the Timestamp tool's "Local time" / "Time in <zone>"
+  // label stay live without the button needing to know about it).
   function copyResultValue(button) {
     const value = document.getElementById(button.dataset.copyTarget).textContent;
-    const label = button.closest('.result-row').querySelector('dt').textContent;
-    return copyText(value, `Copied ${label}.`, convertStatus);
+    const label = button.dataset.copyLabel || button.closest('.result-row').querySelector('dt').textContent;
+    const statusElement = button.closest('.tool-panel').querySelector('.status');
+    return copyText(value, `Copied ${label}.`, statusElement);
+  }
+
+  let copyRowCounter = 0;
+
+  // Builds one labeled result row with its own Copy button. Used by any tool
+  // that renders a variable-length list of copyable values (Hash, Case).
+  function renderCopyRow(label, value) {
+    const row = document.createElement('div');
+    row.className = 'result-row';
+    const dt = document.createElement('dt');
+    dt.textContent = label;
+    const dd = document.createElement('dd');
+    const span = document.createElement('span');
+    span.className = 'result-value';
+    span.id = `copy-value-${copyRowCounter++}`;
+    span.textContent = value;
+    const copyButton = document.createElement('button');
+    copyButton.className = 'button button-secondary copy-one';
+    copyButton.type = 'button';
+    copyButton.textContent = 'Copy';
+    copyButton.dataset.copyTarget = span.id;
+    copyButton.setAttribute('aria-label', `Copy ${label} value`);
+    dd.append(span, copyButton);
+    row.append(dt, dd);
+    return row;
   }
 
   function clearIds() {
@@ -129,15 +161,296 @@
     uuidStatus.textContent = 'Generated IDs cleared from this session.';
   }
 
+  // --- Encode/decode ---
+
+  const encodeForm = document.querySelector('#encode-form');
+  const encodeMode = document.querySelector('#encode-mode');
+  const encodeInput = document.querySelector('#encode-input');
+  const encodeError = document.querySelector('#encode-error');
+  const encodeResult = document.querySelector('#encode-result');
+  const encodeOutput = document.querySelector('#encode-output');
+  const encodeStatus = document.querySelector('#encode-status');
+
+  function runEncode(action) {
+    setError(encodeError, '');
+    encodeStatus.textContent = '';
+    try {
+      const text = action === 'decode'
+        ? ToolkitCore.decodeText(encodeMode.value, encodeInput.value)
+        : ToolkitCore.encodeText(encodeMode.value, encodeInput.value);
+      encodeOutput.textContent = text;
+      encodeResult.hidden = false;
+    } catch (error) {
+      encodeResult.hidden = true;
+      setError(encodeError, error.message);
+      encodeInput.setAttribute('aria-invalid', 'true');
+      encodeInput.focus();
+    } finally {
+      if (encodeError.hidden) encodeInput.removeAttribute('aria-invalid');
+    }
+  }
+
+  // --- JSON formatter/validator ---
+
+  const jsonForm = document.querySelector('#json-form');
+  const jsonInput = document.querySelector('#json-input');
+  const jsonError = document.querySelector('#json-error');
+  const jsonResult = document.querySelector('#json-result');
+  const jsonOutput = document.querySelector('#json-output');
+  const jsonStatus = document.querySelector('#json-status');
+
+  function runJson(action) {
+    setError(jsonError, '');
+    jsonStatus.textContent = '';
+    try {
+      const text = action === 'minify' ? ToolkitCore.minifyJson(jsonInput.value) : ToolkitCore.formatJson(jsonInput.value);
+      jsonOutput.textContent = text;
+      jsonResult.hidden = false;
+    } catch (error) {
+      jsonResult.hidden = true;
+      setError(jsonError, error.message);
+      jsonInput.setAttribute('aria-invalid', 'true');
+      jsonInput.focus();
+    } finally {
+      if (jsonError.hidden) jsonInput.removeAttribute('aria-invalid');
+    }
+  }
+
+  // --- Tab navigation ---
+
+  const navButtons = [...document.querySelectorAll('.nav-item')];
+  const toolPanels = new Map(
+    [...document.querySelectorAll('[data-tool-panel]')].map((panel) => [panel.dataset.toolPanel, panel]),
+  );
+
+  function activateTool(tool) {
+    if (!toolPanels.has(tool)) return;
+    navButtons.forEach((button) => button.setAttribute('aria-selected', String(button.dataset.tool === tool)));
+    toolPanels.forEach((panel, name) => { panel.hidden = name !== tool; });
+    try {
+      localStorage.setItem(TOOL_STORAGE_KEY, tool);
+    } catch (error) {
+      // localStorage can be unavailable (private mode); the tab still works this session.
+    }
+  }
+
+  function restoreActiveTool() {
+    let stored = null;
+    try {
+      stored = localStorage.getItem(TOOL_STORAGE_KEY);
+    } catch (error) {
+      stored = null;
+    }
+    activateTool(toolPanels.has(stored) ? stored : navButtons[0].dataset.tool);
+  }
+
+  navButtons.forEach((button) => {
+    button.addEventListener('click', () => activateTool(button.dataset.tool));
+  });
+
+  // Delegated so every current and future tool's Copy buttons work with zero
+  // per-tool wiring, as long as they carry class="copy-one" + data-copy-target.
+  document.querySelector('.tool-content').addEventListener('click', (event) => {
+    const button = event.target.closest('.copy-one[data-copy-target]');
+    if (button) copyResultValue(button);
+  });
+
   populateTimezones();
+  restoreActiveTool();
 
   convertForm.addEventListener('submit', (event) => { event.preventDefault(); convert(); });
   uuidForm.addEventListener('submit', (event) => { event.preventDefault(); generateIds(); });
-  convertResult.querySelectorAll('[data-copy-target]').forEach((button) => {
-    button.addEventListener('click', () => copyResultValue(button));
-  });
-  copyAllButton.addEventListener('click', () => copyText(generatedIds.join('\n'), `Copied all ${generatedIds.length} IDs.`));
+  copyAllButton.addEventListener('click', () => copyText(generatedIds.join('\n'), `Copied all ${generatedIds.length} IDs.`, uuidStatus));
   clearButton.addEventListener('click', clearIds);
 
-  window.ToolkitApp = { convert, generateIds, copyText, clearIds };
+  jsonForm.addEventListener('submit', (event) => { event.preventDefault(); runJson('format'); });
+  jsonForm.querySelector('[data-json-action="minify"]').addEventListener('click', () => runJson('minify'));
+
+  encodeForm.addEventListener('submit', (event) => { event.preventDefault(); runEncode('encode'); });
+  encodeForm.querySelector('[data-encode-action="decode"]').addEventListener('click', () => runEncode('decode'));
+
+  // --- JWT decoder ---
+
+  const jwtForm = document.querySelector('#jwt-form');
+  const jwtInput = document.querySelector('#jwt-input');
+  const jwtError = document.querySelector('#jwt-error');
+  const jwtResult = document.querySelector('#jwt-result');
+  const jwtHeader = document.querySelector('#jwt-header');
+  const jwtPayload = document.querySelector('#jwt-payload');
+  const jwtDates = document.querySelector('#jwt-dates');
+  const jwtStatus = document.querySelector('#jwt-status');
+
+  const JWT_DATE_FIELDS = ['exp', 'iat', 'nbf'];
+
+  function renderJwtDates(payload) {
+    const fields = JWT_DATE_FIELDS.filter((field) => typeof payload[field] === 'number');
+    jwtDates.replaceChildren(...fields.map((field) => {
+      const row = document.createElement('div');
+      row.className = 'result-row';
+      const dt = document.createElement('dt');
+      dt.textContent = field;
+      const dd = document.createElement('dd');
+      const value = document.createElement('span');
+      value.className = 'result-value';
+      value.textContent = `${payload[field]} — ${ToolkitCore.convertTimestamp(String(payload[field]), 'UTC').utc_iso}`;
+      dd.append(value);
+      row.append(dt, dd);
+      return row;
+    }));
+    jwtDates.hidden = fields.length === 0;
+  }
+
+  function runJwtDecode() {
+    setError(jwtError, '');
+    jwtStatus.textContent = '';
+    try {
+      const { header, payload } = ToolkitCore.decodeJwt(jwtInput.value);
+      jwtHeader.textContent = JSON.stringify(header, null, 2);
+      jwtPayload.textContent = JSON.stringify(payload, null, 2);
+      renderJwtDates(payload);
+      jwtResult.hidden = false;
+    } catch (error) {
+      jwtResult.hidden = true;
+      setError(jwtError, error.message);
+      jwtInput.setAttribute('aria-invalid', 'true');
+      jwtInput.focus();
+    } finally {
+      if (jwtError.hidden) jwtInput.removeAttribute('aria-invalid');
+    }
+  }
+
+  jwtForm.addEventListener('submit', (event) => { event.preventDefault(); runJwtDecode(); });
+
+  // --- Regex tester ---
+
+  const regexForm = document.querySelector('#regex-form');
+  const regexPattern = document.querySelector('#regex-pattern');
+  const regexText = document.querySelector('#regex-text');
+  const regexError = document.querySelector('#regex-error');
+  const regexResult = document.querySelector('#regex-result');
+  const regexHighlight = document.querySelector('#regex-highlight');
+  const regexMatches = document.querySelector('#regex-matches');
+  const regexCount = document.querySelector('#regex-count');
+  const regexStatus = document.querySelector('#regex-status');
+
+  function activeRegexFlags() {
+    return [...regexForm.querySelectorAll('[name="regex-flag"]:checked')].map((box) => box.value).join('');
+  }
+
+  function renderHighlight(text, matches) {
+    regexHighlight.replaceChildren();
+    let cursor = 0;
+    matches.forEach((match) => {
+      if (match.value === '') return;
+      regexHighlight.append(document.createTextNode(text.slice(cursor, match.index)));
+      const mark = document.createElement('mark');
+      mark.textContent = match.value;
+      regexHighlight.append(mark);
+      cursor = match.index + match.value.length;
+    });
+    regexHighlight.append(document.createTextNode(text.slice(cursor)));
+  }
+
+  function renderMatches(matches) {
+    regexCount.textContent = String(matches.length);
+    regexMatches.replaceChildren(...matches.map((match, position) => {
+      const item = document.createElement('li');
+      item.className = 'id-row';
+      const value = document.createElement('code');
+      value.className = 'id-value';
+      const groups = match.groups.length ? ` [${match.groups.map((g) => g ?? '').join(', ')}]` : '';
+      value.textContent = `${position + 1}. "${match.value}" at ${match.index}${groups}`;
+      item.append(value);
+      return item;
+    }));
+  }
+
+  function runRegexTest() {
+    setError(regexError, '');
+    regexStatus.textContent = '';
+    try {
+      const matches = ToolkitCore.testRegex(regexPattern.value, activeRegexFlags(), regexText.value);
+      renderHighlight(regexText.value, matches);
+      renderMatches(matches);
+      regexResult.hidden = false;
+    } catch (error) {
+      regexResult.hidden = true;
+      setError(regexError, error.message);
+      regexPattern.setAttribute('aria-invalid', 'true');
+      regexPattern.focus();
+    } finally {
+      if (regexError.hidden) regexPattern.removeAttribute('aria-invalid');
+    }
+  }
+
+  regexForm.addEventListener('submit', (event) => { event.preventDefault(); runRegexTest(); });
+
+  // --- Hash generator ---
+
+  const hashForm = document.querySelector('#hash-form');
+  const hashInput = document.querySelector('#hash-input');
+  const hashError = document.querySelector('#hash-error');
+  const hashResult = document.querySelector('#hash-result');
+  const hashList = document.querySelector('#hash-list');
+  const hashStatus = document.querySelector('#hash-status');
+
+  async function runHash() {
+    setError(hashError, '');
+    hashStatus.textContent = '';
+    try {
+      const digests = await ToolkitCore.hashText(hashInput.value);
+      hashList.replaceChildren(...ToolkitCore.HASH_ALGORITHMS.map(({ id, label }) => renderCopyRow(label, digests[id])));
+      hashResult.hidden = false;
+    } catch (error) {
+      hashResult.hidden = true;
+      setError(hashError, error.message);
+    }
+  }
+
+  hashForm.addEventListener('submit', (event) => { event.preventDefault(); runHash(); });
+
+  // --- Diff viewer ---
+
+  const diffForm = document.querySelector('#diff-form');
+  const diffA = document.querySelector('#diff-a');
+  const diffB = document.querySelector('#diff-b');
+  const diffResult = document.querySelector('#diff-result');
+  const diffOutput = document.querySelector('#diff-output');
+  const diffStatus = document.querySelector('#diff-status');
+
+  function renderDiff(lines) {
+    diffOutput.replaceChildren(...lines.map((line) => {
+      const row = document.createElement('span');
+      row.className = `diff-line ${line.type}`;
+      row.textContent = line.value;
+      return row;
+    }));
+  }
+
+  function runDiff() {
+    diffStatus.textContent = '';
+    renderDiff(ToolkitCore.diffLines(diffA.value, diffB.value));
+    diffResult.hidden = false;
+  }
+
+  diffForm.addEventListener('submit', (event) => { event.preventDefault(); runDiff(); });
+
+  // --- Case converter ---
+
+  const caseForm = document.querySelector('#case-form');
+  const caseInput = document.querySelector('#case-input');
+  const caseResult = document.querySelector('#case-result');
+  const caseList = document.querySelector('#case-list');
+  const caseStatus = document.querySelector('#case-status');
+
+  function runCaseConvert() {
+    caseStatus.textContent = '';
+    const result = ToolkitCore.convertCase(caseInput.value);
+    caseList.replaceChildren(...ToolkitCore.CASE_STYLES.map(({ id, label }) => renderCopyRow(label, result[id])));
+    caseResult.hidden = false;
+  }
+
+  caseForm.addEventListener('submit', (event) => { event.preventDefault(); runCaseConvert(); });
+
+  window.ToolkitApp = { convert, generateIds, copyText, clearIds, activateTool, runJson, runEncode, runJwtDecode, runRegexTest, runHash, runDiff, runCaseConvert };
 })();

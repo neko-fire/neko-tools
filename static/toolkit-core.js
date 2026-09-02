@@ -14,6 +14,10 @@
   const INVALID_TIMESTAMP_MESSAGE = 'Enter an ISO date/time or Unix timestamp in seconds or milliseconds.';
   const UNKNOWN_TIMEZONE_MESSAGE = 'Select a different display time zone.';
   const INVALID_UUID_COUNT_MESSAGE = 'Choose a quantity between 1 and 100.';
+  const INVALID_JSON_MESSAGE = 'Enter valid JSON.';
+  const INVALID_ENCODING_INPUT_MESSAGE = 'That input cannot be decoded with the selected format.';
+  const INVALID_JWT_MESSAGE = 'Enter a JWT with three dot-separated segments.';
+  const INVALID_REGEX_MESSAGE = 'Enter a valid regular expression.';
 
   // Below this, a number reads as seconds; at or above it, as milliseconds.
   const MILLISECOND_THRESHOLD = 100000000000;
@@ -201,11 +205,234 @@
     return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
   }
 
+  // --- JSON formatter/validator ---
+
+  function parseJsonOrThrow(value) {
+    try {
+      return JSON.parse(String(value));
+    } catch (error) {
+      throw new Error(`${INVALID_JSON_MESSAGE} ${error.message}`);
+    }
+  }
+
+  function formatJson(value) {
+    return `${JSON.stringify(parseJsonOrThrow(value), null, 2)}\n`;
+  }
+
+  function minifyJson(value) {
+    return JSON.stringify(parseJsonOrThrow(value));
+  }
+
+  // --- Encode/decode ---
+
+  function bytesToBase64(bytes) {
+    let binary = '';
+    bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
+    return btoa(binary);
+  }
+
+  function base64ToBytes(text) {
+    const binary = atob(text);
+    return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  }
+
+  function bytesToHex(bytes) {
+    return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+  }
+
+  function encodeText(mode, value) {
+    const text = String(value);
+    if (mode === 'url') return encodeURIComponent(text);
+    const bytes = new TextEncoder().encode(text);
+    if (mode === 'hex') return bytesToHex(bytes);
+    return bytesToBase64(bytes);
+  }
+
+  function decodeText(mode, value) {
+    const text = String(value);
+    try {
+      if (mode === 'url') return decodeURIComponent(text);
+      if (mode === 'hex') {
+        const clean = text.trim().replace(/\s+/g, '');
+        if (!/^[0-9a-fA-F]*$/.test(clean) || clean.length % 2 !== 0) throw new Error('malformed hex');
+        const bytes = Uint8Array.from({ length: clean.length / 2 }, (_, index) => parseInt(clean.slice(index * 2, index * 2 + 2), 16));
+        return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+      }
+      return new TextDecoder('utf-8', { fatal: true }).decode(base64ToBytes(text));
+    } catch (error) {
+      throw new Error(INVALID_ENCODING_INPUT_MESSAGE);
+    }
+  }
+
+  // --- JWT decoder ---
+
+  function decodeJwtSegment(segment) {
+    try {
+      const padded = segment.replace(/-/g, '+').replace(/_/g, '/');
+      const bytes = base64ToBytes(padded.padEnd(padded.length + (4 - (padded.length % 4)) % 4, '='));
+      return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+    } catch (error) {
+      throw new Error(INVALID_JWT_MESSAGE);
+    }
+  }
+
+  function decodeJwt(value) {
+    const segments = String(value).trim().split('.');
+    if (segments.length !== 3 || segments.slice(0, 2).some((segment) => !segment)) throw new Error(INVALID_JWT_MESSAGE);
+
+    return {
+      header: decodeJwtSegment(segments[0]),
+      payload: decodeJwtSegment(segments[1]),
+    };
+  }
+
+  // --- Regex tester ---
+
+  function testRegex(pattern, flags, text) {
+    let regex;
+    try {
+      regex = new RegExp(pattern, flags);
+    } catch (error) {
+      throw new Error(`${INVALID_REGEX_MESSAGE} ${error.message}`);
+    }
+
+    if (!flags.includes('g')) {
+      const match = regex.exec(text);
+      return match ? [{ index: match.index, value: match[0], groups: match.slice(1) }] : [];
+    }
+
+    const matches = [];
+    let match = regex.exec(text);
+    while (match !== null) {
+      matches.push({ index: match.index, value: match[0], groups: match.slice(1) });
+      if (match[0] === '') regex.lastIndex += 1;
+      match = regex.exec(text);
+    }
+    return matches;
+  }
+
+  // --- Hash generator ---
+
+  const HASH_ALGORITHMS = [
+    { id: 'SHA-1', label: 'SHA-1' },
+    { id: 'SHA-256', label: 'SHA-256' },
+    { id: 'SHA-384', label: 'SHA-384' },
+    { id: 'SHA-512', label: 'SHA-512' },
+  ];
+
+  async function hashText(value) {
+    const bytes = new TextEncoder().encode(String(value));
+    const digests = await Promise.all(HASH_ALGORITHMS.map(({ id }) => crypto.subtle.digest(id, bytes)));
+    return HASH_ALGORITHMS.reduce((result, { id }, index) => {
+      result[id] = bytesToHex(new Uint8Array(digests[index]));
+      return result;
+    }, {});
+  }
+
+  // --- Diff viewer ---
+
+  // Standard dynamic-programming LCS, returning matched [indexA, indexB] pairs in order.
+  function longestCommonSubsequence(linesA, linesB) {
+    const lengths = Array.from({ length: linesA.length + 1 }, () => new Uint32Array(linesB.length + 1));
+    for (let i = linesA.length - 1; i >= 0; i -= 1) {
+      for (let j = linesB.length - 1; j >= 0; j -= 1) {
+        lengths[i][j] = linesA[i] === linesB[j]
+          ? lengths[i + 1][j + 1] + 1
+          : Math.max(lengths[i + 1][j], lengths[i][j + 1]);
+      }
+    }
+
+    const pairs = [];
+    let i = 0;
+    let j = 0;
+    while (i < linesA.length && j < linesB.length) {
+      if (linesA[i] === linesB[j]) {
+        pairs.push([i, j]);
+        i += 1;
+        j += 1;
+      } else if (lengths[i + 1][j] >= lengths[i][j + 1]) {
+        i += 1;
+      } else {
+        j += 1;
+      }
+    }
+    return pairs;
+  }
+
+  // O(n*m) time and space, sized for clipboard-length text, not large files.
+  function diffLines(textA, textB) {
+    const linesA = String(textA).split('\n');
+    const linesB = String(textB).split('\n');
+    const pairs = longestCommonSubsequence(linesA, linesB);
+
+    const result = [];
+    let indexA = 0;
+    let indexB = 0;
+    pairs.forEach(([pairA, pairB]) => {
+      while (indexA < pairA) result.push({ type: 'removed', value: linesA[indexA++] });
+      while (indexB < pairB) result.push({ type: 'added', value: linesB[indexB++] });
+      result.push({ type: 'unchanged', value: linesA[indexA] });
+      indexA += 1;
+      indexB += 1;
+    });
+    while (indexA < linesA.length) result.push({ type: 'removed', value: linesA[indexA++] });
+    while (indexB < linesB.length) result.push({ type: 'added', value: linesB[indexB++] });
+    return result;
+  }
+
+  // --- Case converter ---
+
+  const CASE_STYLES = [
+    { id: 'camelCase', label: 'camelCase' },
+    { id: 'PascalCase', label: 'PascalCase' },
+    { id: 'snake_case', label: 'snake_case' },
+    { id: 'kebab-case', label: 'kebab-case' },
+    { id: 'CONSTANT_CASE', label: 'CONSTANT_CASE' },
+    { id: 'Title Case', label: 'Title Case' },
+  ];
+
+  function tokenizeWords(value) {
+    return String(value)
+      .replace(/(\p{Ll}|\p{N})(\p{Lu})/gu, '$1 $2')
+      .split(/[^\p{L}\p{N}]+/u)
+      .filter(Boolean)
+      .map((word) => word.toLowerCase());
+  }
+
+  function convertCase(value) {
+    const words = tokenizeWords(value);
+    const capitalize = (word) => word.charAt(0).toUpperCase() + word.slice(1);
+
+    return {
+      camelCase: words.map((word, index) => (index === 0 ? word : capitalize(word))).join(''),
+      PascalCase: words.map(capitalize).join(''),
+      snake_case: words.join('_'),
+      'kebab-case': words.join('-'),
+      CONSTANT_CASE: words.join('_').toUpperCase(),
+      'Title Case': words.map(capitalize).join(' '),
+    };
+  }
+
   return {
     convertTimestamp,
     generateUuid7Batch,
+    formatJson,
+    minifyJson,
+    encodeText,
+    decodeText,
+    decodeJwt,
+    testRegex,
+    hashText,
+    diffLines,
+    convertCase,
+    CASE_STYLES,
+    HASH_ALGORITHMS,
     INVALID_TIMESTAMP_MESSAGE,
     UNKNOWN_TIMEZONE_MESSAGE,
     INVALID_UUID_COUNT_MESSAGE,
+    INVALID_JSON_MESSAGE,
+    INVALID_ENCODING_INPUT_MESSAGE,
+    INVALID_JWT_MESSAGE,
+    INVALID_REGEX_MESSAGE,
   };
 });

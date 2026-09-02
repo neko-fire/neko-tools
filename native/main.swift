@@ -33,13 +33,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
 
     private func buildWindow() -> NSWindow {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 1180, height: 780),
+            contentRect: NSRect(x: 0, y: 0, width: 700, height: 820),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
             defer: false
         )
         window.title = "Toolkit"
-        window.contentMinSize = NSSize(width: 760, height: 620)
+        window.contentMinSize = NSSize(width: 480, height: 560)
         window.backgroundColor = backgroundColor
         window.center()
         // Reopens where it was last left instead of always centered.

@@ -8,9 +8,41 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="page-shell" aria-label="Neko Toolkit">
-      <section class="tool-grid" aria-label="Toolkit features">
-        <article class="tool-panel" aria-labelledby="time-title">
+    <div class="app-shell">
+      <nav class="tool-nav" aria-label="Tools">
+        <p class="nav-title">Toolkit</p>
+        <ul class="nav-list" role="tablist">
+          <li role="presentation">
+            <button class="nav-item" type="button" role="tab" data-tool="timestamp" aria-selected="true" aria-controls="tool-timestamp">Timestamp</button>
+          </li>
+          <li role="presentation">
+            <button class="nav-item" type="button" role="tab" data-tool="uuid" aria-selected="false" aria-controls="tool-uuid">UUIDv7</button>
+          </li>
+          <li role="presentation">
+            <button class="nav-item" type="button" role="tab" data-tool="json" aria-selected="false" aria-controls="tool-json">JSON</button>
+          </li>
+          <li role="presentation">
+            <button class="nav-item" type="button" role="tab" data-tool="encode" aria-selected="false" aria-controls="tool-encode">Encode/Decode</button>
+          </li>
+          <li role="presentation">
+            <button class="nav-item" type="button" role="tab" data-tool="jwt" aria-selected="false" aria-controls="tool-jwt">JWT</button>
+          </li>
+          <li role="presentation">
+            <button class="nav-item" type="button" role="tab" data-tool="regex" aria-selected="false" aria-controls="tool-regex">Regex</button>
+          </li>
+          <li role="presentation">
+            <button class="nav-item" type="button" role="tab" data-tool="hash" aria-selected="false" aria-controls="tool-hash">Hash</button>
+          </li>
+          <li role="presentation">
+            <button class="nav-item" type="button" role="tab" data-tool="diff" aria-selected="false" aria-controls="tool-diff">Diff</button>
+          </li>
+          <li role="presentation">
+            <button class="nav-item" type="button" role="tab" data-tool="case" aria-selected="false" aria-controls="tool-case">Case</button>
+          </li>
+        </ul>
+      </nav>
+      <main class="tool-content" aria-label="Neko Toolkit">
+        <article class="tool-panel" id="tool-timestamp" data-tool-panel="timestamp" role="tabpanel" aria-labelledby="time-title">
           <div class="panel-heading">
             <p class="panel-kicker">01 / TIME</p>
             <h2 id="time-title">Timestamp converter</h2>
@@ -70,7 +102,7 @@
           <p class="status" id="convert-status" aria-live="polite"></p>
         </article>
 
-        <article class="tool-panel" aria-labelledby="uuid-title">
+        <article class="tool-panel" id="tool-uuid" data-tool-panel="uuid" role="tabpanel" aria-labelledby="uuid-title" hidden>
           <div class="panel-heading">
             <p class="panel-kicker">02 / IDENTIFIERS</p>
             <h2 id="uuid-title">UUIDv7 generator</h2>
@@ -96,8 +128,178 @@
             <ul class="id-list" id="id-list" aria-live="polite" aria-label="Generated UUIDs"></ul>
           </section>
         </article>
-      </section>
-    </main>
+
+        <article class="tool-panel" id="tool-json" data-tool-panel="json" role="tabpanel" aria-labelledby="json-title" hidden>
+          <div class="panel-heading">
+            <p class="panel-kicker">03 / JSON</p>
+            <h2 id="json-title">JSON formatter</h2>
+            <p>Paste JSON to format it or minify it.</p>
+          </div>
+          <form id="json-form" novalidate>
+            <label for="json-input">JSON input</label>
+            <textarea id="json-input" name="json-input" rows="8" spellcheck="false" aria-describedby="json-error" required></textarea>
+            <p class="form-error" id="json-error" role="alert" hidden></p>
+            <div class="button-row">
+              <button class="button button-primary" type="submit" data-json-action="format">Format</button>
+              <button class="button button-secondary" type="button" data-json-action="minify">Minify</button>
+            </div>
+          </form>
+          <section class="result-card" id="json-result" aria-live="polite" aria-label="JSON result" hidden>
+            <div class="output-heading">
+              <h3>Result</h3>
+              <button class="button button-secondary copy-one" type="button" data-copy-target="json-output" data-copy-label="JSON result">Copy</button>
+            </div>
+            <pre class="output-block"><code id="json-output"></code></pre>
+          </section>
+          <p class="status" id="json-status" aria-live="polite"></p>
+        </article>
+
+        <article class="tool-panel" id="tool-encode" data-tool-panel="encode" role="tabpanel" aria-labelledby="encode-title" hidden>
+          <div class="panel-heading">
+            <p class="panel-kicker">04 / ENCODING</p>
+            <h2 id="encode-title">Encode / decode</h2>
+            <p>Convert text to and from Base64, URL, and hex encoding.</p>
+          </div>
+          <form id="encode-form" novalidate>
+            <label for="encode-mode">Format</label>
+            <select id="encode-mode" name="encode-mode">
+              <option value="base64">Base64</option>
+              <option value="url">URL</option>
+              <option value="hex">Hex</option>
+            </select>
+            <label for="encode-input">Text</label>
+            <textarea id="encode-input" name="encode-input" rows="6" spellcheck="false" aria-describedby="encode-error" required></textarea>
+            <p class="form-error" id="encode-error" role="alert" hidden></p>
+            <div class="button-row">
+              <button class="button button-primary" type="submit" data-encode-action="encode">Encode</button>
+              <button class="button button-secondary" type="button" data-encode-action="decode">Decode</button>
+            </div>
+          </form>
+          <section class="result-card" id="encode-result" aria-live="polite" aria-label="Encode/decode result" hidden>
+            <div class="output-heading">
+              <h3>Result</h3>
+              <button class="button button-secondary copy-one" type="button" data-copy-target="encode-output" data-copy-label="encoded result">Copy</button>
+            </div>
+            <pre class="output-block"><code id="encode-output"></code></pre>
+          </section>
+          <p class="status" id="encode-status" aria-live="polite"></p>
+        </article>
+
+        <article class="tool-panel" id="tool-jwt" data-tool-panel="jwt" role="tabpanel" aria-labelledby="jwt-title" hidden>
+          <div class="panel-heading">
+            <p class="panel-kicker">05 / AUTH</p>
+            <h2 id="jwt-title">JWT decoder</h2>
+            <p>Decodes the header and payload. The signature is never verified.</p>
+          </div>
+          <form id="jwt-form" novalidate>
+            <label for="jwt-input">Token</label>
+            <textarea id="jwt-input" name="jwt-input" rows="4" spellcheck="false" aria-describedby="jwt-error" required></textarea>
+            <p class="form-error" id="jwt-error" role="alert" hidden></p>
+            <button class="button button-primary" type="submit">Decode</button>
+          </form>
+          <section class="result-card" id="jwt-result" aria-live="polite" aria-label="JWT result" hidden>
+            <div class="output-heading">
+              <h3>Header</h3>
+              <button class="button button-secondary copy-one" type="button" data-copy-target="jwt-header" data-copy-label="JWT header">Copy</button>
+            </div>
+            <pre class="output-block"><code id="jwt-header"></code></pre>
+            <div class="output-heading">
+              <h3>Payload</h3>
+              <button class="button button-secondary copy-one" type="button" data-copy-target="jwt-payload" data-copy-label="JWT payload">Copy</button>
+            </div>
+            <pre class="output-block"><code id="jwt-payload"></code></pre>
+            <dl class="result-list" id="jwt-dates" hidden></dl>
+            <p class="helper">Signature not verified.</p>
+          </section>
+          <p class="status" id="jwt-status" aria-live="polite"></p>
+        </article>
+
+        <article class="tool-panel" id="tool-regex" data-tool-panel="regex" role="tabpanel" aria-labelledby="regex-title" hidden>
+          <div class="panel-heading">
+            <p class="panel-kicker">06 / PATTERNS</p>
+            <h2 id="regex-title">Regex tester</h2>
+            <p>Test a JavaScript regular expression against sample text.</p>
+          </div>
+          <form id="regex-form" novalidate>
+            <label for="regex-pattern">Pattern</label>
+            <input id="regex-pattern" name="regex-pattern" type="text" spellcheck="false" aria-describedby="regex-error" required />
+            <fieldset class="flag-set">
+              <legend>Flags</legend>
+              <label><input type="checkbox" name="regex-flag" value="g" checked /> g (global)</label>
+              <label><input type="checkbox" name="regex-flag" value="i" /> i (ignore case)</label>
+              <label><input type="checkbox" name="regex-flag" value="m" /> m (multiline)</label>
+              <label><input type="checkbox" name="regex-flag" value="s" /> s (dot all)</label>
+              <label><input type="checkbox" name="regex-flag" value="u" /> u (unicode)</label>
+            </fieldset>
+            <label for="regex-text">Test string</label>
+            <textarea id="regex-text" name="regex-text" rows="6" spellcheck="false" required></textarea>
+            <p class="form-error" id="regex-error" role="alert" hidden></p>
+            <button class="button button-primary" type="submit">Test</button>
+          </form>
+          <section class="result-card" id="regex-result" aria-live="polite" aria-label="Regex result" hidden>
+            <h3>Matched text</h3>
+            <pre class="output-block" id="regex-highlight"></pre>
+            <h3>Matches (<span id="regex-count">0</span>)</h3>
+            <ul class="id-list" id="regex-matches"></ul>
+          </section>
+          <p class="status" id="regex-status" aria-live="polite"></p>
+        </article>
+
+        <article class="tool-panel" id="tool-hash" data-tool-panel="hash" role="tabpanel" aria-labelledby="hash-title" hidden>
+          <div class="panel-heading">
+            <p class="panel-kicker">07 / HASHING</p>
+            <h2 id="hash-title">Hash generator</h2>
+            <p>Computes SHA-1, SHA-256, SHA-384, and SHA-512 digests of the input text.</p>
+          </div>
+          <form id="hash-form" novalidate>
+            <label for="hash-input">Text</label>
+            <textarea id="hash-input" name="hash-input" rows="6" spellcheck="false" aria-describedby="hash-error" required></textarea>
+            <p class="form-error" id="hash-error" role="alert" hidden></p>
+            <button class="button button-primary" type="submit">Generate hashes</button>
+          </form>
+          <section class="result-card" id="hash-result" aria-live="polite" aria-label="Hash result" hidden>
+            <dl class="result-list" id="hash-list"></dl>
+          </section>
+          <p class="status" id="hash-status" aria-live="polite"></p>
+        </article>
+
+        <article class="tool-panel" id="tool-diff" data-tool-panel="diff" role="tabpanel" aria-labelledby="diff-title" hidden>
+          <div class="panel-heading">
+            <p class="panel-kicker">08 / DIFF</p>
+            <h2 id="diff-title">Diff viewer</h2>
+            <p>Compares two texts line by line. Sized for short snippets, not large files.</p>
+          </div>
+          <form id="diff-form" novalidate>
+            <label for="diff-a">Text A</label>
+            <textarea id="diff-a" name="diff-a" rows="6" spellcheck="false"></textarea>
+            <label for="diff-b">Text B</label>
+            <textarea id="diff-b" name="diff-b" rows="6" spellcheck="false"></textarea>
+            <button class="button button-primary" type="submit">Compare</button>
+          </form>
+          <section class="result-card" id="diff-result" aria-live="polite" aria-label="Diff result" hidden>
+            <pre class="output-block" id="diff-output"></pre>
+          </section>
+          <p class="status" id="diff-status" aria-live="polite"></p>
+        </article>
+
+        <article class="tool-panel" id="tool-case" data-tool-panel="case" role="tabpanel" aria-labelledby="case-title" hidden>
+          <div class="panel-heading">
+            <p class="panel-kicker">09 / CASE</p>
+            <h2 id="case-title">Case converter</h2>
+            <p>Converts text between common identifier and title casing styles.</p>
+          </div>
+          <form id="case-form" novalidate>
+            <label for="case-input">Text</label>
+            <input id="case-input" name="case-input" type="text" spellcheck="false" />
+            <button class="button button-primary" type="submit">Convert</button>
+          </form>
+          <section class="result-card" id="case-result" aria-live="polite" aria-label="Case conversion result" hidden>
+            <dl class="result-list" id="case-list"></dl>
+          </section>
+          <p class="status" id="case-status" aria-live="polite"></p>
+        </article>
+      </main>
+    </div>
     <script src="toolkit-core.js" defer></script>
     <script src="app.js" defer></script>
   </body>

@@ -278,7 +278,7 @@
 
   function decodeJwt(value) {
     const segments = String(value).trim().split('.');
-    if (segments.length !== 3 || segments.some((segment) => !segment)) throw new Error(INVALID_JWT_MESSAGE);
+    if (segments.length !== 3 || segments.slice(0, 2).some((segment) => !segment)) throw new Error(INVALID_JWT_MESSAGE);
 
     return {
       header: decodeJwtSegment(segments[0]),
@@ -393,8 +393,8 @@
 
   function tokenizeWords(value) {
     return String(value)
-      .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-      .split(/[^A-Za-z0-9]+/)
+      .replace(/(\p{Ll}|\p{N})(\p{Lu})/gu, '$1 $2')
+      .split(/[^\p{L}\p{N}]+/u)
       .filter(Boolean)
       .map((word) => word.toLowerCase());
   }

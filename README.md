@@ -1,7 +1,8 @@
 # Toolkit
 
-A small macOS utility app with two tools: a **UTC timestamp converter** and a
-**UUIDv7 generator**.
+A small macOS utility app with nine tools: **timestamp converter**, **UUIDv7
+generator**, **JSON formatter/validator**, **encode/decode**, **JWT decoder**,
+**regex tester**, **hash generator**, **diff viewer**, and **case converter**.
 
 It is a native window around a local HTML page. There is no server, no bundled
 runtime, and no network access — the whole app is 404 KB.
@@ -17,6 +18,9 @@ npm run package:mac  # build, test, and produce the DMG
 
 ## What it does
 
+The first two tools are detailed below; the other seven follow the same
+pattern — paste input, act on it, copy the result.
+
 **Timestamp converter** — accepts a Unix timestamp (seconds or milliseconds,
 detected automatically) or an ISO 8601 date/time, and returns UTC ISO, the time
 in a chosen zone, Unix seconds, Unix milliseconds, and a relative description
@@ -26,6 +30,26 @@ on your computer's own zone. Every output value has its own Copy button.
 **UUIDv7 generator** — generates 1–100 time-sortable UUIDv7 values in
 generation order. Copy one, copy all, or clear the list. Nothing is persisted;
 the list is gone after a reload or restart.
+
+**JSON formatter/validator** — formats or minifies pasted JSON; invalid JSON
+shows the native parse error.
+
+**Encode/Decode** — converts text to and from Base64, URL, and hex encoding.
+
+**JWT decoder** — decodes a token's header and payload as JSON; the signature
+is never verified.
+
+**Regex tester** — tests a pattern with flags against sample text and lists
+matches with capture groups.
+
+**Hash generator** — computes SHA-1, SHA-256, SHA-384, and SHA-512 digests of
+input text.
+
+**Diff viewer** — compares two texts line by line, color-coding additions and
+removals.
+
+**Case converter** — converts text to camelCase, PascalCase, snake_case,
+kebab-case, CONSTANT_CASE, and Title Case.
 
 ## Requirements
 
@@ -41,7 +65,7 @@ No Python, no `npm install` — the project has zero dependencies.
 native/main.swift       the app: an NSWindow hosting a WKWebView
 native/Info.plist       bundle metadata
 native/assets/icon.icns app icon
-static/toolkit-core.js  timestamp + UUIDv7 logic, no DOM access
+static/toolkit-core.js  all 9 tools' logic, no DOM access
 static/app.js           wires the page to the core
 static/index.html       the single page
 static/styles.css       styling
@@ -112,7 +136,7 @@ certificate plus notarization.
 
 ## Notes on the logic
 
-Both features are pure functions, so the page computes them itself:
+All tools are pure functions, so the page computes them itself:
 
 - **Timestamps** use `Intl.DateTimeFormat` for zone offsets, including the
   second-precision Local Mean Time offsets that zones carried before they

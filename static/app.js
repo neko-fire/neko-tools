@@ -389,15 +389,22 @@
 
   const hashForm = document.querySelector('#hash-form');
   const hashInput = document.querySelector('#hash-input');
+  const hashError = document.querySelector('#hash-error');
   const hashResult = document.querySelector('#hash-result');
   const hashList = document.querySelector('#hash-list');
   const hashStatus = document.querySelector('#hash-status');
 
   async function runHash() {
+    setError(hashError, '');
     hashStatus.textContent = '';
-    const digests = await ToolkitCore.hashText(hashInput.value);
-    hashList.replaceChildren(...ToolkitCore.HASH_ALGORITHMS.map(({ id, label }) => renderCopyRow(label, digests[id])));
-    hashResult.hidden = false;
+    try {
+      const digests = await ToolkitCore.hashText(hashInput.value);
+      hashList.replaceChildren(...ToolkitCore.HASH_ALGORITHMS.map(({ id, label }) => renderCopyRow(label, digests[id])));
+      hashResult.hidden = false;
+    } catch (error) {
+      hashResult.hidden = true;
+      setError(hashError, error.message);
+    }
   }
 
   hashForm.addEventListener('submit', (event) => { event.preventDefault(); runHash(); });

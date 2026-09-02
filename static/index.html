@@ -13,36 +13,36 @@
         <p class="nav-title">Toolkit</p>
         <ul class="nav-list" role="tablist">
           <li role="presentation">
-            <button class="nav-item" type="button" role="tab" data-tool="timestamp" aria-selected="true">Timestamp</button>
+            <button class="nav-item" type="button" role="tab" data-tool="timestamp" aria-selected="true" aria-controls="tool-timestamp">Timestamp</button>
           </li>
           <li role="presentation">
-            <button class="nav-item" type="button" role="tab" data-tool="uuid" aria-selected="false">UUIDv7</button>
+            <button class="nav-item" type="button" role="tab" data-tool="uuid" aria-selected="false" aria-controls="tool-uuid">UUIDv7</button>
           </li>
           <li role="presentation">
-            <button class="nav-item" type="button" role="tab" data-tool="json" aria-selected="false">JSON</button>
+            <button class="nav-item" type="button" role="tab" data-tool="json" aria-selected="false" aria-controls="tool-json">JSON</button>
           </li>
           <li role="presentation">
-            <button class="nav-item" type="button" role="tab" data-tool="encode" aria-selected="false">Encode/Decode</button>
+            <button class="nav-item" type="button" role="tab" data-tool="encode" aria-selected="false" aria-controls="tool-encode">Encode/Decode</button>
           </li>
           <li role="presentation">
-            <button class="nav-item" type="button" role="tab" data-tool="jwt" aria-selected="false">JWT</button>
+            <button class="nav-item" type="button" role="tab" data-tool="jwt" aria-selected="false" aria-controls="tool-jwt">JWT</button>
           </li>
           <li role="presentation">
-            <button class="nav-item" type="button" role="tab" data-tool="regex" aria-selected="false">Regex</button>
+            <button class="nav-item" type="button" role="tab" data-tool="regex" aria-selected="false" aria-controls="tool-regex">Regex</button>
           </li>
           <li role="presentation">
-            <button class="nav-item" type="button" role="tab" data-tool="hash" aria-selected="false">Hash</button>
+            <button class="nav-item" type="button" role="tab" data-tool="hash" aria-selected="false" aria-controls="tool-hash">Hash</button>
           </li>
           <li role="presentation">
-            <button class="nav-item" type="button" role="tab" data-tool="diff" aria-selected="false">Diff</button>
+            <button class="nav-item" type="button" role="tab" data-tool="diff" aria-selected="false" aria-controls="tool-diff">Diff</button>
           </li>
           <li role="presentation">
-            <button class="nav-item" type="button" role="tab" data-tool="case" aria-selected="false">Case</button>
+            <button class="nav-item" type="button" role="tab" data-tool="case" aria-selected="false" aria-controls="tool-case">Case</button>
           </li>
         </ul>
       </nav>
       <main class="tool-content" aria-label="Neko Toolkit">
-        <article class="tool-panel" id="tool-timestamp" data-tool-panel="timestamp" aria-labelledby="time-title">
+        <article class="tool-panel" id="tool-timestamp" data-tool-panel="timestamp" role="tabpanel" aria-labelledby="time-title">
           <div class="panel-heading">
             <p class="panel-kicker">01 / TIME</p>
             <h2 id="time-title">Timestamp converter</h2>
@@ -102,7 +102,7 @@
           <p class="status" id="convert-status" aria-live="polite"></p>
         </article>
 
-        <article class="tool-panel" id="tool-uuid" data-tool-panel="uuid" aria-labelledby="uuid-title" hidden>
+        <article class="tool-panel" id="tool-uuid" data-tool-panel="uuid" role="tabpanel" aria-labelledby="uuid-title" hidden>
           <div class="panel-heading">
             <p class="panel-kicker">02 / IDENTIFIERS</p>
             <h2 id="uuid-title">UUIDv7 generator</h2>
@@ -129,7 +129,7 @@
           </section>
         </article>
 
-        <article class="tool-panel" id="tool-json" data-tool-panel="json" aria-labelledby="json-title" hidden>
+        <article class="tool-panel" id="tool-json" data-tool-panel="json" role="tabpanel" aria-labelledby="json-title" hidden>
           <div class="panel-heading">
             <p class="panel-kicker">03 / JSON</p>
             <h2 id="json-title">JSON formatter</h2>
@@ -154,7 +154,7 @@
           <p class="status" id="json-status" aria-live="polite"></p>
         </article>
 
-        <article class="tool-panel" id="tool-encode" data-tool-panel="encode" aria-labelledby="encode-title" hidden>
+        <article class="tool-panel" id="tool-encode" data-tool-panel="encode" role="tabpanel" aria-labelledby="encode-title" hidden>
           <div class="panel-heading">
             <p class="panel-kicker">04 / ENCODING</p>
             <h2 id="encode-title">Encode / decode</h2>
@@ -185,7 +185,7 @@
           <p class="status" id="encode-status" aria-live="polite"></p>
         </article>
 
-        <article class="tool-panel" id="tool-jwt" data-tool-panel="jwt" aria-labelledby="jwt-title" hidden>
+        <article class="tool-panel" id="tool-jwt" data-tool-panel="jwt" role="tabpanel" aria-labelledby="jwt-title" hidden>
           <div class="panel-heading">
             <p class="panel-kicker">05 / AUTH</p>
             <h2 id="jwt-title">JWT decoder</h2>
@@ -214,7 +214,7 @@
           <p class="status" id="jwt-status" aria-live="polite"></p>
         </article>
 
-        <article class="tool-panel" id="tool-regex" data-tool-panel="regex" aria-labelledby="regex-title" hidden>
+        <article class="tool-panel" id="tool-regex" data-tool-panel="regex" role="tabpanel" aria-labelledby="regex-title" hidden>
           <div class="panel-heading">
             <p class="panel-kicker">06 / PATTERNS</p>
             <h2 id="regex-title">Regex tester</h2>
@@ -245,7 +245,7 @@
           <p class="status" id="regex-status" aria-live="polite"></p>
         </article>
 
-        <article class="tool-panel" id="tool-hash" data-tool-panel="hash" aria-labelledby="hash-title" hidden>
+        <article class="tool-panel" id="tool-hash" data-tool-panel="hash" role="tabpanel" aria-labelledby="hash-title" hidden>
           <div class="panel-heading">
             <p class="panel-kicker">07 / HASHING</p>
             <h2 id="hash-title">Hash generator</h2>
@@ -253,7 +253,8 @@
           </div>
           <form id="hash-form" novalidate>
             <label for="hash-input">Text</label>
-            <textarea id="hash-input" name="hash-input" rows="6" spellcheck="false" required></textarea>
+            <textarea id="hash-input" name="hash-input" rows="6" spellcheck="false" aria-describedby="hash-error" required></textarea>
+            <p class="form-error" id="hash-error" role="alert" hidden></p>
             <button class="button button-primary" type="submit">Generate hashes</button>
           </form>
           <section class="result-card" id="hash-result" aria-live="polite" aria-label="Hash result" hidden>
@@ -262,7 +263,7 @@
           <p class="status" id="hash-status" aria-live="polite"></p>
         </article>
 
-        <article class="tool-panel" id="tool-diff" data-tool-panel="diff" aria-labelledby="diff-title" hidden>
+        <article class="tool-panel" id="tool-diff" data-tool-panel="diff" role="tabpanel" aria-labelledby="diff-title" hidden>
           <div class="panel-heading">
             <p class="panel-kicker">08 / DIFF</p>
             <h2 id="diff-title">Diff viewer</h2>
@@ -281,7 +282,7 @@
           <p class="status" id="diff-status" aria-live="polite"></p>
         </article>
 
-        <article class="tool-panel" id="tool-case" data-tool-panel="case" aria-labelledby="case-title" hidden>
+        <article class="tool-panel" id="tool-case" data-tool-panel="case" role="tabpanel" aria-labelledby="case-title" hidden>
           <div class="panel-heading">
             <p class="panel-kicker">09 / CASE</p>
             <h2 id="case-title">Case converter</h2>

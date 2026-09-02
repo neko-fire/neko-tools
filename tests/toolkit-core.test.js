@@ -272,6 +272,29 @@ test('empty input is rejected', () => {
   assert.throws(() => decodeJwt(''), { message: INVALID_JWT_MESSAGE });
 });
 
+test('a token with an empty signature segment (alg:none) is accepted', () => {
+  const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWF0IjoxNTE2MjM5MDIyfQ.';
+  const result = decodeJwt(token);
+
+  assert.deepEqual(result.header, { alg: 'HS256', typ: 'JWT' });
+  assert.deepEqual(result.payload, { sub: '1234567890', iat: 1516239022 });
+});
+
+test('a base64url segment containing - and _ characters decodes correctly', () => {
+  // Built from encodeText's own base64 output (converted to base64url) rather
+  // than a hand-typed token, so the test can't be subtly wrong about padding
+  // or the -/_ substitution.
+  const toBase64Url = (base64) => base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const header = { alg: 'HS256', typ: 'JWT' };
+  const payload = { sub: 'a??>>' };
+  const token = [header, payload].map((part) => toBase64Url(encodeText('base64', JSON.stringify(part)))).join('.') + '.sig';
+
+  const result = decodeJwt(token);
+
+  assert.deepEqual(result.header, header);
+  assert.deepEqual(result.payload, payload);
+});
+
 // --- Regex tester ---
 
 test('a pattern with the global flag returns every match', () => {
@@ -423,4 +446,11 @@ test('empty input produces empty output for every style', () => {
 
   assert.equal(result.camelCase, '');
   assert.equal(result.CONSTANT_CASE, '');
+});
+
+test('non-ASCII letters are tokenized instead of stripped', () => {
+  const result = convertCase('Größe Straße');
+
+  assert.ok(result.snake_case.includes('größe'), result.snake_case);
+  assert.ok(result.snake_case.includes('straße'), result.snake_case);
 });

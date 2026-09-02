@@ -5,7 +5,8 @@ directly in a browser with `npm run dev`. Verify the following:
 
 ## The page
 
-1. The page loads with both panels: Timestamp converter and UUIDv7 generator.
+1. The page loads with a sidebar listing all 9 tools and the Timestamp
+   converter panel active by default.
 2. Clicking a sidebar item shows that tool's panel and hides the others; the
    clicked item is visually marked active. Reloading the page reopens on the
    tool you had open, not always Timestamp.
@@ -52,20 +53,18 @@ Only checkable in the built app, not in the browser:
    before the page paints.
 2. The window opens at roughly 700×820 — small enough to sit in one half of a
    13" MacBook Air screen in Split View. Resizing below roughly 480×560 is
-   refused.
+   refused rather than clipping the panels.
 3. Cmd-Q quits, Cmd-C and Cmd-V work in the input fields, and the Edit menu
    lists them.
-4. Resizing below the minimum window size is refused rather than clipping the
-   panels.
-5. Closing the window quits the app, leaving no stray process.
-6. Reopening from the Dock after closing the window brings the window back.
+4. Closing the window quits the app, leaving no stray process.
+5. Reopening from the Dock after closing the window brings the window back.
 
 ## Packaged build
 
 `npm run package:mac` covers the automated checks. Then confirm by hand:
 
 1. Open `dist/Toolkit-0.1.0.dmg` and drag **Toolkit** to Applications.
-2. Launch it from Applications and confirm both panels work.
+2. Launch it from Applications and confirm the sidebar and a few tools work.
 3. The app icon renders correctly in the Dock and in Finder.
 
 A DMG you built locally is not quarantined and opens normally. A DMG that

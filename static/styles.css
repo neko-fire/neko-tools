@@ -27,7 +27,7 @@ body {
   line-height: 1.5;
 }
 
-button, input, select { font: inherit; }
+button, input, select, textarea { font: inherit; }
 
 .app-shell { display: flex; min-height: 100dvh; }
 .tool-nav { flex: 0 0 180px; padding: 1.5rem 1rem; background: color-mix(in srgb, var(--surface) 94%, transparent); border-right: 1px solid var(--border); }
@@ -51,7 +51,8 @@ h3 { margin: 0; font-size: 1rem; }
 form { display: grid; gap: .55rem; }
 label { margin-top: .35rem; font-weight: 700; }
 .optional { color: var(--muted); font-weight: 400; }
-input, select { width: 100%; min-height: 44px; padding: .6rem .75rem; color: var(--text); background: #101827; border: 1px solid var(--border); border-radius: .5rem; }
+input, select, textarea { width: 100%; min-height: 44px; padding: .6rem .75rem; color: var(--text); background: #101827; border: 1px solid var(--border); border-radius: .5rem; }
+textarea { resize: vertical; }
 input::placeholder { color: #94a3b8; }
 input:hover, select:hover { border-color: #94a3b8; }
 input:focus-visible, select:focus-visible, button:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }

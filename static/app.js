@@ -452,5 +452,140 @@
 
   caseForm.addEventListener('submit', (event) => { event.preventDefault(); runCaseConvert(); });
 
+  // --- Timer ---
+
+  const TIMER_TICK_MS = 250;
+  const timerModeButtons = [...document.querySelectorAll('[data-timer-mode]')];
+  const timerForm = document.querySelector('#timer-form');
+  const timerDurationField = document.querySelector('#timer-duration-field');
+  const timerDuration = document.querySelector('#timer-duration');
+  const timerError = document.querySelector('#timer-error');
+  const timerDisplay = document.querySelector('#timer-display');
+  const timerToggle = document.querySelector('#timer-toggle');
+  const timerStop = document.querySelector('#timer-stop');
+  const timerStatus = document.querySelector('#timer-status');
+
+  // Elapsed time is always derived from Date.now(), never counted per tick, so
+  // a throttled or delayed interval can only delay a repaint, not skew the time.
+  // phase: idle | running | paused | finished
+  const timers = {
+    countdown: { phase: 'idle', accumulated: 0, startedAt: 0, durationMs: 0 },
+    free: { phase: 'idle', accumulated: 0, startedAt: 0 },
+  };
+  let timerMode = 'countdown';
+  let timerInterval = null;
+
+  const timerElapsed = (timer) => timer.accumulated + (timer.phase === 'running' ? Date.now() - timer.startedAt : 0);
+  const timerRemaining = (timer) => Math.max(0, timer.durationMs - timerElapsed(timer));
+  const anyTimerRunning = () => Object.values(timers).some((timer) => timer.phase === 'running');
+
+  // The native shell keeps the app out of App Nap while a timer runs and rings
+  // the countdown alarm from its own clock, which WebKit throttling cannot delay.
+  // alarm: milliseconds from now schedules it, null cancels it, undefined leaves it.
+  function notifyNative(alarm) {
+    const handler = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.timer;
+    if (!handler) return;
+    const message = { running: anyTimerRunning() };
+    if (alarm !== undefined) message.alarm = alarm;
+    handler.postMessage(message);
+  }
+
+  function timerShownMilliseconds() {
+    if (timerMode === 'free') return timerElapsed(timers.free);
+    const countdown = timers.countdown;
+    if (countdown.phase === 'idle') {
+      try {
+        return ToolkitCore.parseDuration(timerDuration.value);
+      } catch (error) {
+        return 0;
+      }
+    }
+    // Round up so 00:00 only shows once the countdown has actually ended.
+    return Math.ceil(timerRemaining(countdown) / 1000) * 1000;
+  }
+
+  function renderTimer() {
+    const timer = timers[timerMode];
+    timerDisplay.textContent = ToolkitCore.formatDuration(timerShownMilliseconds());
+    timerToggle.textContent = timer.phase === 'running' ? 'Pause' : timer.phase === 'paused' ? 'Resume' : 'Start';
+    timerStop.disabled = timer.phase === 'idle';
+    timerDurationField.hidden = timerMode === 'free';
+    timerDuration.disabled = timerMode === 'countdown' && (timer.phase === 'running' || timer.phase === 'paused');
+    timerStatus.textContent = timer.phase === 'finished' ? 'Time\u2019s up.' : '';
+    timerModeButtons.forEach((button) => {
+      const mode = button.dataset.timerMode;
+      button.setAttribute('aria-pressed', String(mode === timerMode));
+      button.dataset.running = String(timers[mode].phase === 'running');
+    });
+  }
+
+  function timerTick() {
+    const countdown = timers.countdown;
+    if (countdown.phase === 'running' && timerRemaining(countdown) === 0) {
+      countdown.phase = 'finished';
+      countdown.accumulated = countdown.durationMs;
+      notifyNative();
+    }
+    if (!anyTimerRunning() && timerInterval !== null) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+    renderTimer();
+  }
+
+  function toggleTimer() {
+    const timer = timers[timerMode];
+    setError(timerError, '');
+    timerDuration.removeAttribute('aria-invalid');
+
+    if (timer.phase === 'running') {
+      timer.accumulated = timerElapsed(timer);
+      timer.phase = 'paused';
+      notifyNative(timerMode === 'countdown' ? null : undefined);
+    } else {
+      if (timerMode === 'countdown' && (timer.phase === 'idle' || timer.phase === 'finished')) {
+        try {
+          timer.durationMs = ToolkitCore.parseDuration(timerDuration.value);
+        } catch (error) {
+          setError(timerError, error.message);
+          timerDuration.setAttribute('aria-invalid', 'true');
+          timerDuration.focus();
+          return;
+        }
+        timer.accumulated = 0;
+      }
+      timer.phase = 'running';
+      timer.startedAt = Date.now();
+      if (timerInterval === null) timerInterval = setInterval(timerTick, TIMER_TICK_MS);
+      notifyNative(timerMode === 'countdown' ? timerRemaining(timer) : undefined);
+    }
+    renderTimer();
+  }
+
+  function stopTimer() {
+    const timer = timers[timerMode];
+    timer.phase = 'idle';
+    timer.accumulated = 0;
+    setError(timerError, '');
+    notifyNative(timerMode === 'countdown' ? null : undefined);
+    timerTick();
+  }
+
+  function setTimerMode(mode) {
+    timerMode = mode;
+    setError(timerError, '');
+    renderTimer();
+  }
+
+  timerForm.addEventListener('submit', (event) => { event.preventDefault(); toggleTimer(); });
+  timerStop.addEventListener('click', stopTimer);
+  timerDuration.addEventListener('input', renderTimer);
+  timerModeButtons.forEach((button) => {
+    button.addEventListener('click', () => setTimerMode(button.dataset.timerMode));
+  });
+  // Repaint immediately when the window comes back instead of waiting for a tick.
+  document.addEventListener('visibilitychange', timerTick);
+  renderTimer();
+
   window.ToolkitApp = { convert, generateIds, copyText, clearIds, activateTool, runJson, runEncode, runJwtDecode, runRegexTest, runHash, runDiff, runCaseConvert };
 })();

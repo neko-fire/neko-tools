@@ -1,8 +1,8 @@
 # Toolkit
 
-A small macOS utility app with nine tools: **timestamp converter**, **UUIDv7
+A small macOS utility app with ten tools: **timestamp converter**, **UUIDv7
 generator**, **JSON formatter/validator**, **encode/decode**, **JWT decoder**,
-**regex tester**, **hash generator**, **diff viewer**, and **case converter**.
+**regex tester**, **hash generator**, **diff viewer**, **case converter**, and **timer**.
 
 It is a native window around a local HTML page. There is no server, no bundled
 runtime, and no network access — the whole app is 404 KB.
@@ -50,6 +50,11 @@ removals.
 
 **Case converter** — converts text to camelCase, PascalCase, snake_case,
 kebab-case, CONSTANT_CASE, and Title Case.
+
+**Timer** — a countdown (enter `1h`, `90m`, `1h30m`, `45s`, or `5:30`) or a free
+timer, each with start, pause/resume, and stop. Time is derived from the wall
+clock, and the app opts out of App Nap while a timer runs, so it stays accurate
+when minimized. A finished countdown plays a sound and bounces the Dock icon.
 
 ## Requirements
 

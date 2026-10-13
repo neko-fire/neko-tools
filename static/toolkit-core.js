@@ -18,6 +18,7 @@
   const INVALID_ENCODING_INPUT_MESSAGE = 'That input cannot be decoded with the selected format.';
   const INVALID_JWT_MESSAGE = 'Enter a JWT with three dot-separated segments.';
   const INVALID_REGEX_MESSAGE = 'Enter a valid regular expression.';
+  const INVALID_DURATION_MESSAGE = 'Enter a duration like 1h, 90m, 1h30m, 45s or 5:30.';
 
   // Below this, a number reads as seconds; at or above it, as milliseconds.
   const MILLISECOND_THRESHOLD = 100000000000;
@@ -413,6 +414,42 @@
     };
   }
 
+  // --- Timer ---
+
+  const MAXIMUM_DURATION_MS = 99 * 3600000;
+  const CLOCK_PATTERN = /^(?:(\d{1,2}):)?(\d{1,2}):(\d{2})$/;
+  const UNITS_PATTERN = /^(?:(\d+)h)?\s*(?:(\d+)m)?\s*(?:(\d+)s)?$/;
+
+  function parseDuration(value) {
+    const text = String(value).trim().toLowerCase();
+    let hours = 0;
+    let minutes = 0;
+    let seconds = 0;
+
+    const clock = CLOCK_PATTERN.exec(text);
+    const units = clock ? null : UNITS_PATTERN.exec(text);
+    if (clock) {
+      [hours, minutes, seconds] = [Number(clock[1] || 0), Number(clock[2]), Number(clock[3])];
+      if (seconds > 59 || (clock[1] !== undefined && minutes > 59)) throw new Error(INVALID_DURATION_MESSAGE);
+    } else if (units && text) {
+      [hours, minutes, seconds] = [Number(units[1] || 0), Number(units[2] || 0), Number(units[3] || 0)];
+    } else {
+      throw new Error(INVALID_DURATION_MESSAGE);
+    }
+
+    const milliseconds = ((hours * 60 + minutes) * 60 + seconds) * 1000;
+    if (milliseconds <= 0 || milliseconds > MAXIMUM_DURATION_MS) throw new Error(INVALID_DURATION_MESSAGE);
+    return milliseconds;
+  }
+
+  function formatDuration(milliseconds) {
+    const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return hours > 0 ? `${hours}:${pad(minutes)}:${pad(seconds)}` : `${pad(minutes)}:${pad(seconds)}`;
+  }
+
   return {
     convertTimestamp,
     generateUuid7Batch,
@@ -425,6 +462,8 @@
     hashText,
     diffLines,
     convertCase,
+    parseDuration,
+    formatDuration,
     CASE_STYLES,
     HASH_ALGORITHMS,
     INVALID_TIMESTAMP_MESSAGE,
@@ -434,5 +473,6 @@
     INVALID_ENCODING_INPUT_MESSAGE,
     INVALID_JWT_MESSAGE,
     INVALID_REGEX_MESSAGE,
+    INVALID_DURATION_MESSAGE,
   };
 });

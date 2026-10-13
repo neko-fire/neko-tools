@@ -97,6 +97,11 @@ mark { background: var(--accent); color: var(--accent-text); border-radius: .2re
 .diff-line.added::before { content: '+'; color: #4ade80; }
 .diff-line.removed::before { content: '-'; color: #f87171; }
 
+.timer-display { margin: 1rem 0 .3rem; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: clamp(2.5rem, 12vw, 4.5rem); font-variant-numeric: tabular-nums; font-weight: 800; line-height: 1.1; }
+[data-timer-mode][aria-pressed="true"] { color: var(--accent-text); background: var(--accent); }
+[data-timer-mode][data-running="true"]::after { content: " \25CF"; }
+#tool-timer form { margin-top: 1rem; }
+
 @keyframes reveal { to { opacity: 1; transform: translateY(0); } }
 @media (max-width: 30rem) { .output-heading { align-items: flex-start; flex-direction: column; } .output-actions { width: 100%; } .output-actions .button { flex: 1; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; } }

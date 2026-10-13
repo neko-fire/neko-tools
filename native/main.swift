@@ -7,9 +7,18 @@ import WebKit
 // Matches --background in styles.css, so there is no flash before the page paints.
 let backgroundColor = NSColor(red: 0x0f / 255.0, green: 0x17 / 255.0, blue: 0x2a / 255.0, alpha: 1)
 
-final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKScriptMessageHandler {
     private var window: NSWindow!
     private var webView: WKWebView!
+
+    // Timer support. The page reports whether a timer is running and when the
+    // countdown alarm is due. While either is true the process holds an activity
+    // token, so macOS does not nap the app (and with it the page's timers) when
+    // the window is minimized or hidden. The alarm runs on a native wall-clock
+    // timer so WebKit throttling cannot delay it.
+    private var timerRunning = false
+    private var alarm: DispatchSourceTimer?
+    private var activity: NSObjectProtocol?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.mainMenu = buildMenu()
@@ -49,6 +58,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
 
     private func buildWebView() -> WKWebView {
         let configuration = WKWebViewConfiguration()
+        configuration.userContentController.add(self, name: "timer")
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = self
         webView.underPageBackgroundColor = backgroundColor
@@ -62,6 +72,60 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
             return
         }
         webView.loadFileURL(page, allowingReadAccessTo: page.deletingLastPathComponent())
+    }
+
+    // Messages are { running: Bool, alarm?: Number|null }. A number schedules the
+    // alarm that many milliseconds from now, null cancels it, absent leaves it.
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        guard message.name == "timer", let body = message.body as? [String: Any] else { return }
+        if let running = body["running"] as? Bool { timerRunning = running }
+        if body.keys.contains("alarm") {
+            cancelAlarm()
+            if let milliseconds = body["alarm"] as? Double { scheduleAlarm(in: milliseconds / 1000) }
+        }
+        updateActivity()
+    }
+
+    private func scheduleAlarm(in seconds: Double) {
+        let source = DispatchSource.makeTimerSource(queue: .main)
+        // Wall time, so the alarm still lands on schedule after the Mac sleeps.
+        source.schedule(wallDeadline: .now() + max(0, seconds))
+        source.setEventHandler { [weak self] in
+            self?.cancelAlarm()
+            self?.ringAlarm()
+            self?.updateActivity()
+        }
+        alarm = source
+        source.resume()
+    }
+
+    private func cancelAlarm() {
+        alarm?.cancel()
+        alarm = nil
+    }
+
+    private func ringAlarm() {
+        // Bounces the Dock icon until the app is brought forward.
+        NSApp.requestUserAttention(.criticalRequest)
+        for ping in 0..<3 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(ping) * 1.2) {
+                NSSound(named: "Glass")?.play()
+            }
+        }
+    }
+
+    private func updateActivity() {
+        let needed = timerRunning || alarm != nil
+        if needed && activity == nil {
+            // Allows idle system sleep: this prevents App Nap, not the Mac sleeping.
+            activity = ProcessInfo.processInfo.beginActivity(
+                options: .userInitiatedAllowingIdleSystemSleep,
+                reason: "Timer running"
+            )
+        } else if !needed, let token = activity {
+            ProcessInfo.processInfo.endActivity(token)
+            activity = nil
+        }
     }
 
     // The page is local, so nothing should ever navigate away from it. Anything

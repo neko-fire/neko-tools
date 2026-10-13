@@ -13,6 +13,8 @@ const {
   hashText,
   diffLines,
   convertCase,
+  parseDuration,
+  formatDuration,
   UNKNOWN_TIMEZONE_MESSAGE,
   INVALID_TIMESTAMP_MESSAGE,
   INVALID_UUID_COUNT_MESSAGE,
@@ -20,6 +22,7 @@ const {
   INVALID_ENCODING_INPUT_MESSAGE,
   INVALID_JWT_MESSAGE,
   INVALID_REGEX_MESSAGE,
+  INVALID_DURATION_MESSAGE,
 } = require('../static/toolkit-core.js');
 
 // --- Timestamp conversion (ported from tests/test_time_converter.py) ---
@@ -453,4 +456,46 @@ test('non-ASCII letters are tokenized instead of stripped', () => {
 
   assert.ok(result.snake_case.includes('größe'), result.snake_case);
   assert.ok(result.snake_case.includes('straße'), result.snake_case);
+});
+
+// --- Timer ---
+
+test('parseDuration reads single units', () => {
+  assert.equal(parseDuration('1h'), 3600000);
+  assert.equal(parseDuration('90m'), 5400000);
+  assert.equal(parseDuration('45s'), 45000);
+});
+
+test('parseDuration combines units, case and whitespace insensitive', () => {
+  assert.equal(parseDuration('1h30m'), 5400000);
+  assert.equal(parseDuration(' 1H 30m 15s '), 5415000);
+});
+
+test('parseDuration reads clock notation', () => {
+  assert.equal(parseDuration('5:30'), 330000);
+  assert.equal(parseDuration('1:05:00'), 3900000);
+});
+
+test('parseDuration rejects empty, zero, bare numbers and garbage', () => {
+  for (const input of ['', '  ', '0', '0s', '0:00', '90', 'abc', '1x', '1h1h', '30m1h', '1:99', '-5m', '1.5h']) {
+    assert.throws(() => parseDuration(input), { message: INVALID_DURATION_MESSAGE }, input);
+  }
+});
+
+test('parseDuration caps the duration at 99 hours', () => {
+  assert.equal(parseDuration('99h'), 99 * 3600000);
+  assert.throws(() => parseDuration('100h'), { message: INVALID_DURATION_MESSAGE });
+});
+
+test('formatDuration shows MM:SS under an hour and H:MM:SS from an hour up', () => {
+  assert.equal(formatDuration(0), '00:00');
+  assert.equal(formatDuration(65000), '01:05');
+  assert.equal(formatDuration(3599000), '59:59');
+  assert.equal(formatDuration(3600000), '1:00:00');
+  assert.equal(formatDuration(3725000), '1:02:05');
+});
+
+test('formatDuration floors partial seconds and clamps negatives to zero', () => {
+  assert.equal(formatDuration(1999), '00:01');
+  assert.equal(formatDuration(-500), '00:00');
 });

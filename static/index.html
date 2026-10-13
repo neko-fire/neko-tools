@@ -39,6 +39,9 @@
           <li role="presentation">
             <button class="nav-item" type="button" role="tab" data-tool="case" aria-selected="false" aria-controls="tool-case">Case</button>
           </li>
+          <li role="presentation">
+            <button class="nav-item" type="button" role="tab" data-tool="timer" aria-selected="false" aria-controls="tool-timer">Timer</button>
+          </li>
         </ul>
       </nav>
       <main class="tool-content" aria-label="Neko Toolkit">
@@ -297,6 +300,32 @@
             <dl class="result-list" id="case-list"></dl>
           </section>
           <p class="status" id="case-status" aria-live="polite"></p>
+        </article>
+
+        <article class="tool-panel" id="tool-timer" data-tool-panel="timer" role="tabpanel" aria-labelledby="timer-title" hidden>
+          <div class="panel-heading">
+            <p class="panel-kicker">10 / TIMER</p>
+            <h2 id="timer-title">Timer</h2>
+            <p>Counts down from a set time, or runs freely until you stop it. Keeps accurate time while the window is minimized and sounds an alarm when a countdown ends.</p>
+          </div>
+          <div class="button-row" role="group" aria-label="Timer mode">
+            <button class="button button-secondary" type="button" data-timer-mode="countdown" aria-pressed="true">Countdown</button>
+            <button class="button button-secondary" type="button" data-timer-mode="free" aria-pressed="false">Free timer</button>
+          </div>
+          <form id="timer-form" novalidate>
+            <div id="timer-duration-field">
+              <label for="timer-duration">Duration</label>
+              <input id="timer-duration" name="timer-duration" type="text" autocomplete="off" spellcheck="false" placeholder="1h30m" aria-describedby="timer-help timer-error" />
+              <p class="helper" id="timer-help">Examples: <code>1h</code>, <code>90m</code>, <code>1h30m</code>, <code>45s</code>, or <code>5:30</code>.</p>
+              <p class="form-error" id="timer-error" role="alert" hidden></p>
+            </div>
+            <p class="timer-display" id="timer-display" role="timer" aria-live="off">00:00</p>
+            <div class="button-row">
+              <button class="button button-primary" id="timer-toggle" type="submit">Start</button>
+              <button class="button button-secondary" id="timer-stop" type="button">Stop</button>
+            </div>
+          </form>
+          <p class="status" id="timer-status" aria-live="polite"></p>
         </article>
       </main>
     </div>

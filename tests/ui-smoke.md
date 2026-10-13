@@ -5,7 +5,7 @@ directly in a browser with `npm run dev`. Verify the following:
 
 ## The page
 
-1. The page loads with a sidebar listing all 9 tools and the Timestamp
+1. The page loads with a sidebar listing all 10 tools and the Timestamp
    converter panel active by default.
 2. Clicking a sidebar item shows that tool's panel and hides the others; the
    clicked item is visually marked active. Reloading the page reopens on the
@@ -45,6 +45,13 @@ are visibly indicated, each Copy button has a distinct accessible name, the
 page has no horizontal scroll at 375px, and reduced-motion preference removes
 UI transitions.
 
+18. The timer's Countdown mode shows an inline error for `abc`, and accepts
+    `5s`: Start counts down, Pause freezes it, Resume continues, Stop returns it
+    to the entered duration. At 00:00 it shows `Time's up.`
+19. The Free timer counts up from 00:00 with the same Start, Pause/Resume and
+    Stop buttons. Switching between modes keeps each mode's state, and a
+    running mode shows a dot on its switch button.
+
 ## The app window
 
 Only checkable in the built app, not in the browser:
@@ -58,6 +65,11 @@ Only checkable in the built app, not in the browser:
    lists them.
 4. Closing the window quits the app, leaving no stray process.
 5. Reopening from the Dock after closing the window brings the window back.
+6. Start a `20s` countdown, minimize the window, and wait. After 20 seconds
+   (not noticeably later) the alarm sounds three times and the Dock icon
+   bounces. Restoring the window shows `00:00` and `Time's up.`
+7. Start a free timer, minimize for a minute, and restore. The display matches
+   real elapsed time.
 
 ## Packaged build
 
